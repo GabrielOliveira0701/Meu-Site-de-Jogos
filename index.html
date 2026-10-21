@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#050b16">
+
+  <title>ALCATECH GAMES — Seu universo gamer</title>
+  <meta name="description"
+    content="Descubra jogos independentes, aventuras, terror e puzzles no ALCATECH GAMES.">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Configuração do Tailwind -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            space: "#080b14",
+            panel: "#101625",
+            neon: "#00e5ff",
+            cyan: "#38bdf8"
+          },
+          fontFamily: {
+            sans: ["Inter", "Arial", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+  <!-- Fonte -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background-color: #080b14;
+      background-image:
+        radial-gradient(ellipse at 50% 0%, rgba(0,229,255,.12), transparent 48%),
+        linear-gradient(30deg, transparent 48%, rgba(0,229,255,.045) 49%, rgba(0,229,255,.045) 51%, transparent 52%),
+        linear-gradient(150deg, transparent 48%, rgba(56,189,248,.035) 49%, rgba(56,189,248,.035) 51%, transparent 52%),
+        linear-gradient(rgba(8, 11, 20, 0.94), rgba(8, 11, 20, 0.97));
+      background-size: auto, 54px 94px, 54px 94px, auto;
+      background-position: center;
+      background-attachment: fixed;
+      color: #f8fafc;
+      font-family: Inter, Arial, sans-serif;
+    }
+
+    ::selection {
+      background: #00e5ff;
+      color: #080b14;
+    }
+
+    .glass {
+      background: rgba(16, 22, 37, 0.88);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 225, 255, 0.15);
+    }
+
+    .hero-bg {
+      background:
+        radial-gradient(ellipse at 75% 25%, rgba(0,225,255,.18), transparent 40%),
+        radial-gradient(ellipse at 15% 75%, rgba(56,189,248,.1), transparent 38%),
+        transparent;
+    }
+
+    .game-card {
+      transition: transform .25s ease, border-color .25s ease,
+                  box-shadow .25s ease;
+    }
+
+    .game-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(0,225,255,.65);
+      box-shadow: 0 18px 45px rgba(0,225,255,.15);
+    }
+
+    .game-art {
+      transition: transform .4s ease;
+    }
+
+    .game-card:hover .game-art {
+      transform: scale(1.06);
+    }
+
+    .neon-text {
+      background: linear-gradient(90deg, #a5f3fc, #00e5ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .neon-button {
+      background: linear-gradient(100deg, #0891b2, #00e5ff);
+      color: #080b14;
+      font-weight: 800;
+      transition: filter .2s ease, transform .2s ease;
+    }
+
+    .neon-button:hover {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
+    }
+
+    .modal-backdrop {
+      background: rgba(0,0,0,.78);
+      backdrop-filter: blur(8px);
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    a:focus-visible {
+      outline: 2px solid #00e5ff;
+      outline-offset: 3px;
+    }
+
+    [v-cloak] { display: none; }
+  </style>
+</head>
+
+<body>
+<div id="app" v-cloak>
+
+  <!-- ================= HEADER ================= -->
+  <header class="sticky top-0 z-40 glass">
+    <nav class="max-w-7xl mx-auto px-5 lg:px-8 h-20 flex items-center justify-between gap-5">
+
+      <a href="#" class="flex items-center gap-3 shrink-0"
+         aria-label="Alcatech Games, página inicial">
+        <!-- Logo oficial Alcatech Games -->
+        <div class="w-14 h-14 rounded-xl overflow-hidden border border-cyan-300/50 shadow-lg shadow-cyan-500/25 shrink-0 bg-black">
+          <img src="assets/alcatech-logo.jpeg" alt="Logo Alcatech Games: lobo gamer neon" class="w-full h-full object-cover">
+        </div>
+
+        <div>
+          <div class="font-black tracking-wider text-xl">
+            ALCA<span class="text-cyan-300">TECH</span> <span class="text-white">GAMES</span>
+          </div>
+          <div class="text-[10px] tracking-[.25em] text-gray-400">
+            SUA ALCATEIA GAMER
+          </div>
+        </div>
+      </a>
+
+      <div class="hidden md:flex items-center gap-7 text-sm text-gray-300">
+        <a href="#inicio" class="hover:text-cyan-200 transition">Início</a>
+        <a href="#jogos" class="hover:text-cyan-200 transition">Jogos</a>
+        <a href="#categorias" class="hover:text-cyan-200 transition">Categorias</a>
+        <a href="#sobre" class="hover:text-cyan-200 transition">Sobre</a>
+      </div>
+
+      <a href="#jogos"
+         class="neon-button rounded-xl px-4 py-2.5 font-bold text-sm shrink-0">
+        Explorar jogos
+      </a>
+    </nav>
+  </header>
+
+
+  <!-- ================= HERO ================= -->
+  <main>
+    <section id="inicio" class="hero-bg relative overflow-hidden">
+      <div class="max-w-7xl mx-auto px-5 lg:px-8 py-20 lg:py-28
+                  grid lg:grid-cols-2 gap-14 items-center">
+
+        <div>
+          <div class="inline-flex items-center gap-2 rounded-full border
+                      border-cyan-300/30 bg-cyan-300/10 px-4 py-2
+                      text-xs font-bold text-cyan-200 mb-7">
+            <span class="w-2 h-2 bg-cyan-300 rounded-full animate-pulse"></span>
+            SEU PRÓXIMO JOGO ESTÁ AQUI
+          </div>
+
+          <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black
+                     leading-[1.08] tracking-tight">
+            ENTRE NO
+            <span class="neon-text">JOGO.</span>
+            <br>
+            VIVA A
+            <span class="neon-text">AVENTURA.</span>
+          </h1>
+
+          <p class="mt-7 text-gray-300 text-base sm:text-lg
+                    leading-8 max-w-xl">
+            Explore mundos, enfrente desafios e descubra jogos
+            independentes criados para quem ama jogar.
+            Sua próxima aventura começa aqui.
+          </p>
+
+          <div class="flex flex-wrap gap-4 mt-9">
+            <a href="#jogos"
+               class="neon-button rounded-xl px-7 py-4">
+              🎮 Explorar catálogo
+            </a>
+
+            <a href="#sobre"
+               class="rounded-xl border border-white/15 px-7 py-4
+                      font-bold hover:bg-white/5 transition">
+              Conheça o projeto
+            </a>
+          </div>
+
+          <div class="flex gap-8 mt-12 pt-7 border-t border-white/10">
+            <div>
+              <div class="text-2xl font-black text-cyan-300">{{ games.length }}</div>
+              <div class="text-xs text-gray-400 mt-1">Jogos cadastrados</div>
+            </div>
+
+            <div>
+              <div class="text-2xl font-black text-cyan-300">100%</div>
+              <div class="text-xs text-gray-400 mt-1">Foco em diversão</div>
+            </div>
+
+            <div>
+              <div class="text-2xl font-black text-cyan-300">PC</div>
+              <div class="text-xs text-gray-400 mt-1">Plataforma inicial</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arte em destaque -->
+        <div class="relative">
+          <div class="absolute inset-0 bg-cyan-600/20 blur-3xl rounded-full"></div>
+
+          <div class="relative rounded-3xl border border-cyan-400/20 overflow-hidden
+                      bg-gradient-to-br from-zinc-950 via-slate-900 to-cyan-950
+                      min-h-[360px] sm:min-h-[440px] flex items-center justify-center shadow-2xl">
+
+            <div class="absolute inset-0 opacity-15"
+                 style="background-image:linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.12) 1px,transparent 1px);background-size:35px 35px;">
+            </div>
+
+            <div class="relative text-center p-8">
+              <img src="assets/alcatech-logo.jpeg" alt="Alcatech Games — logo oficial" class="w-full max-w-md rounded-2xl mb-7 border border-cyan-300/30 shadow-2xl shadow-cyan-500/20">
+
+              <div class="text-xs tracking-[.35em] text-cyan-200 font-bold mb-3">
+                JOGO EM DESTAQUE
+              </div>
+
+              <h2 class="text-4xl sm:text-5xl font-black tracking-widest text-white">
+                A MANSÃO
+              </h2>
+
+              <p class="text-gray-300 mt-3">
+                Nem todo segredo deve ser descoberto.
+              </p>
+
+              <button @click="openGame(featuredGame)"
+                class="mt-7 rounded-xl bg-white text-gray-950
+                       px-6 py-3 font-bold hover:bg-cyan-100 transition shadow-lg">
+                Descubra jogo →
+              </button>
+            </div>
+
+            <div class="absolute top-5 right-5 text-xs font-bold
+                        bg-black/60 border border-cyan-400/30 rounded-full px-3 py-2 text-cyan-200">
+              🕯️ TERROR • PUZZLE
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ================= CATÁLOGO ================= -->
+    <section id="jogos" class="max-w-7xl mx-auto px-5 lg:px-8 py-20">
+
+      <div class="flex flex-col lg:flex-row lg:items-end
+                  justify-between gap-7 mb-10">
+        <div>
+          <div class="text-xs font-bold tracking-[.3em] text-cyan-300 mb-3">
+            DESCUBRA SEU PRÓXIMO DESAFIO
+          </div>
+
+          <h2 class="text-3xl sm:text-4xl font-black">
+            Biblioteca de <span class="neon-text">jogos</span>
+          </h2>
+
+          <p class="text-gray-400 mt-3">
+            Encontre uma aventura que combine com você.
+          </p>
+        </div>
+
+        <!-- Pesquisa -->
+        <div class="relative w-full lg:max-w-sm">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2">🔎</span>
+
+          <input v-model="search"
+            type="search"
+            placeholder="Pesquisar jogos..."
+            aria-label="Pesquisar jogos"
+            class="w-full rounded-xl bg-panel border border-white/10
+                   py-4 pl-12 pr-4 text-sm outline-none
+                   focus:border-cyan-300 transition">
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div id="categorias"
+           class="flex gap-3 overflow-x-auto pb-3 mb-9">
+        <button v-for="category in categories"
+          :key="category"
+          @click="activeCategory = category"
+          class="shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold
+                 border transition"
+          :class="activeCategory === category
+            ? 'bg-cyan-600 border-cyan-400 text-gray-950 font-bold'
+            : 'bg-panel border-white/10 text-gray-400 hover:text-white hover:border-white/30'">
+          {{ category }}
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between mb-6">
+        <p class="text-sm text-gray-400">
+          {{ filteredGames.length }}
+          {{ filteredGames.length === 1 ? 'jogo encontrado' : 'jogos encontrados' }}
+        </p>
+
+        <label class="text-sm text-gray-400 flex items-center gap-2">
+          Ordenar:
+          <select v-model="sortBy"
+            class="bg-panel border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:border-cyan-300">
+            <option value="featured">Destaques</option>
+            <option value="name">Nome A–Z</option>
+            <option value="newest">Mais recentes</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- Cards -->
+      <div v-if="filteredGames.length"
+           class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+        <article v-for="game in filteredGames"
+          :key="game.id"
+          class="game-card rounded-2xl overflow-hidden bg-panel
+                 border border-white/10">
+
+          <button @click="openGame(game)"
+            class="block w-full text-left"
+            :aria-label="'Ver detalhes de ' + game.title">
+
+            <div class="relative h-52 overflow-hidden flex items-center justify-center"
+              :style="{background: game.gradient}">
+
+              <div class="absolute inset-0 opacity-20"
+                style="background-image:radial-gradient(white 1px,transparent 1px);background-size:22px 22px;">
+              </div>
+
+              <div class="game-art relative text-7xl"
+                   style="filter:drop-shadow(0 8px 22px rgba(0,0,0,.4))">
+                {{ game.emoji }}
+              </div>
+
+              <span class="absolute top-4 left-4 bg-black/50 backdrop-blur
+                           rounded-lg px-3 py-1.5 text-xs font-bold text-gray-200">
+                {{ game.category }}
+              </span>
+
+              <span v-if="game.badge"
+                class="absolute top-4 right-4 bg-cyan-300 text-gray-950
+                       rounded-lg px-2.5 py-1 text-[10px] font-black">
+                {{ game.badge }}
+              </span>
+
+              <div class="absolute bottom-0 inset-x-0 h-16
+                          bg-gradient-to-t from-black/40 to-transparent"></div>
+            </div>
+
+            <div class="p-5">
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="text-lg font-bold text-white">{{ game.title }}</h3>
+                <span class="text-xs text-gray-500 shrink-0">{{ game.version }}</span>
+              </div>
+
+              <p class="text-sm text-gray-400 mt-2 leading-6 h-12 overflow-hidden">
+                {{ game.description }}
+              </p>
+
+              <div class="flex flex-wrap gap-2 mt-4">
+                <span v-for="tag in game.tags" :key="tag"
+                  class="text-[11px] text-gray-300 bg-white/5
+                         border border-white/5 rounded-md px-2 py-1">
+                  {{ tag }}
+                </span>
+              </div>
+            </div>
+          </button>
+
+          <div class="px-5 pb-5 flex gap-3">
+            <button @click="openGame(game)"
+              class="flex-1 rounded-lg py-3 text-sm font-bold
+                     bg-white/5 hover:bg-white/10 transition">
+              Detalhes
+            </button>
+
+            <button @click="playGame(game)"
+              class="flex-1 rounded-lg py-3 text-sm font-bold neon-button">
+              ▶ Jogar
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <!-- Nenhum resultado -->
+      <div v-else class="text-center py-20 rounded-2xl
+                         border border-dashed border-white/15 bg-panel/50">
+        <div class="text-5xl mb-4">🕹️</div>
+        <h3 class="text-xl font-bold">Nenhum jogo encontrado</h3>
+        <p class="text-gray-400 mt-2">Tente outra pesquisa ou categoria.</p>
+        <button @click="search = ''; activeCategory = 'Todos'"
+          class="mt-5 text-cyan-300 hover:text-cyan-200 font-semibold">
+          Limpar filtros
+        </button>
+      </div>
+
+    </section>
+
+
+    <!-- ================= BANNER ================= -->
+    <section class="max-w-7xl mx-auto px-5 lg:px-8 pb-20">
+      <div class="relative overflow-hidden rounded-3xl border border-cyan-400/25
+                  bg-gradient-to-r from-zinc-950 via-slate-900 to-cyan-950 p-8 sm:p-12 shadow-2xl">
+
+        <div class="absolute -right-10 -top-16 text-[200px] opacity-10">🎮</div>
+
+        <div class="relative max-w-2xl">
+          <div class="text-xs tracking-[.3em] font-bold text-cyan-300 mb-4">
+            PARA QUEM AMA CRIAR
+          </div>
+
+          <h2 class="text-3xl sm:text-4xl font-black text-white">
+            Sua próxima aventura começa com a alcateia.
+          </h2>
+
+          <p class="text-gray-300 leading-7 mt-4">
+            A Alcatech Games é o espaço para descobrir jogos e dar vida
+            a novos projetos independentes.
+          </p>
+
+          <a href="#sobre"
+            class="inline-block mt-7 bg-white text-gray-950
+                   rounded-xl px-6 py-3 font-bold hover:bg-cyan-100 transition shadow-lg">
+            Saiba mais sobre nós →
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- ================= SOBRE ================= -->
+  <section id="sobre" class="border-t border-white/10 bg-[#080b14]/90 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-5 lg:px-8 py-16
+                grid md:grid-cols-3 gap-10">
+
+      <div class="md:col-span-2">
+        <h2 class="text-2xl font-black text-white">
+          Sobre o <span class="neon-text">ALCATECH GAMES</span>
+        </h2>
+
+        <p class="text-gray-400 mt-4 leading-8 max-w-2xl">
+          Um portal dedicado a jogos independentes. Aqui você poderá
+          apresentar seus projetos, compartilhar novidades e disponibilizar
+          versões para download de seus jogos.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-4 text-white">Navegação</h3>
+        <div class="flex flex-col gap-3 text-sm text-gray-400">
+          <a href="#inicio" class="hover:text-cyan-200 transition">Início</a>
+          <a href="#jogos" class="hover:text-cyan-200 transition">Biblioteca de jogos</a>
+          <a href="#categorias" class="hover:text-cyan-200 transition">Categorias</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="border-t border-white/10 bg-[#080b14]">
+    <div class="max-w-7xl mx-auto px-5 lg:px-8 py-7
+                flex flex-col sm:flex-row justify-between gap-4
+                text-sm text-gray-500">
+      <p>© {{ currentYear }} ALCATECH GAMES. Todos os direitos reservados.</p>
+      <p>Na alcateia, cada jogo é uma nova aventura. 🐺🎮</p>
+    </div>
+  </footer>
+
+
+  <!-- ================= MODAL DE DETALHES ================= -->
+  <div v-if="selectedGame"
+       @click.self="selectedGame = null"
+       @keydown.esc="selectedGame = null"
+       class="modal-backdrop fixed inset-0 z-50 p-4
+              flex items-center justify-center overflow-y-auto"
+       role="dialog"
+       aria-modal="true"
+       :aria-label="'Detalhes de ' + selectedGame.title">
+
+    <div class="w-full max-w-2xl rounded-3xl overflow-hidden
+                bg-[#101625] border border-cyan-400/30 shadow-2xl my-auto">
+
+      <div class="relative min-h-56 flex items-center justify-center"
+           :style="{background: selectedGame.gradient}">
+
+        <div class="text-8xl"
+             style="filter:drop-shadow(0 0 30px rgba(255,255,255,.2))">
+          {{ selectedGame.emoji }}
+        </div>
+
+        <button @click="selectedGame = null"
+          class="absolute top-4 right-4 w-10 h-10 rounded-full
+                 bg-black/50 hover:bg-black/80 text-xl text-white flex items-center justify-center transition"
+          aria-label="Fechar detalhes">
+          ×
+        </button>
+
+        <span class="absolute bottom-4 left-5 bg-black/60
+                     rounded-lg px-3 py-1 text-xs font-bold text-gray-200">
+          {{ selectedGame.category }}
+        </span>
+      </div>
+
+      <div class="p-6 sm:p-8">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <h2 class="text-3xl font-black text-white">{{ selectedGame.title }}</h2>
+          <span class="text-sm text-gray-400">{{ selectedGame.version }}</span>
+        </div>
+
+        <p class="text-gray-300 leading-7 mt-4">
+          {{ selectedGame.longDescription }}
+        </p>
+
+        <div class="mt-6">
+          <h3 class="font-bold mb-3 text-white">Informações do jogo</h3>
+
+          <div class="grid sm:grid-cols-2 gap-3 text-sm">
+            <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+              <div class="text-gray-500 mb-1">Gênero</div>
+              <div class="text-gray-200">{{ selectedGame.category }}</div>
+            </div>
+
+            <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+              <div class="text-gray-500 mb-1">Plataforma</div>
+              <div class="text-gray-200">{{ selectedGame.platform }}</div>
+            </div>
+
+            <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+              <div class="text-gray-500 mb-1">Desenvolvedor</div>
+              <div class="text-gray-200">{{ selectedGame.developer }}</div>
+            </div>
+
+            <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+              <div class="text-gray-500 mb-1">Versão</div>
+              <div class="text-gray-200">{{ selectedGame.version }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 mt-7">
+          <button @click="playGame(selectedGame)"
+            class="flex-1 rounded-xl neon-button py-4">
+            ▶ Jogar agora
+          </button>
+
+          <button @click="downloadGame(selectedGame)"
+            class="flex-1 rounded-xl border border-white/15
+                   py-4 font-bold hover:bg-white/5 transition text-white">
+            ↓ Baixar jogo
+          </button>
+        </div>
+
+        <p class="text-xs text-gray-500 mt-4">
+          Os jogos precisam ter um link válido para que o download ou
+          a execução funcione.
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================= MENSAGEM ================= -->
+  <div v-if="notice"
+       role="status"
+       aria-live="polite"
+       class="fixed bottom-5 right-5 z-[60] max-w-sm
+              rounded-xl border border-cyan-400/30
+              bg-[#17172b] px-5 py-4 shadow-2xl">
+    <div class="font-bold text-white">{{ notice.title }}</div>
+    <p class="text-sm text-gray-300 mt-1">{{ notice.message }}</p>
+    <button @click="notice = null"
+      class="text-sm text-cyan-300 mt-3 hover:text-cyan-200 font-semibold">
+      Fechar
+    </button>
+  </div>
+
+</div>
+
+
+<!-- ================= LÓGICA VUE ================= -->
+<script>
+const { createApp } = Vue;
+
+createApp({
+  data() {
+    return {
+      search: "",
+      activeCategory: "Todos",
+      sortBy: "featured",
+      selectedGame: null,
+      notice: null,
+      currentYear: new Date().getFullYear(),
+
+      games: [
+        {
+          id: 1,
+          title: "A Mansão",
+          category: "Escape Room",
+          emoji: "🏰",
+          badge: "DESTAQUE",
+          version: "v1.0.0",
+          platform: "Navegador / PC",
+          developer: "ALCATECH GAMES",
+          description: "Investigue uma mansão misteriosa e descubra seus segredos.",
+          longDescription:
+            "Você está preso em uma mansão cheia de mistérios. Explore os cômodos, encontre objetos escondidos, resolva enigmas e descubra como escapar. Cada pista pode ser importante para sua sobrevivência.",
+          tags: ["Mistério", "Enigmas", "Exploração"],
+          gradient: "linear-gradient(135deg,#082f49,#10172d,#0e7490)",
+          featured: true,
+          releaseOrder: 1,
+          playUrl: "",
+          downloadUrl: ""
+        },
+        {
+          id: 2,
+          title: "Shadow Quest",
+          category: "Aventura",
+          emoji: "⚔️",
+          badge: "EM BREVE",
+          version: "v0.1.0",
+          platform: "PC",
+          developer: "ALCATECH GAMES",
+          description: "Uma jornada por terras misteriosas e perigosas.",
+          longDescription:
+            "Explore um mundo de fantasia, descubra lugares esquecidos e enfrente desafios durante uma grande aventura.",
+          tags: ["Fantasia", "Exploração"],
+          gradient: "linear-gradient(135deg,#0c4a6e,#20152d,#155e75)",
+          featured: false,
+          releaseOrder: 2,
+          playUrl: "",
+          downloadUrl: ""
+        },
+        {
+          id: 3,
+          title: "Cyber Protocol",
+          category: "Puzzle",
+          emoji: "🤖",
+          badge: "EM BREVE",
+          version: "v0.1.0",
+          platform: "PC",
+          developer: "ALCATECH GAMES",
+          description: "Resolva códigos em um laboratório tecnológico.",
+          longDescription:
+            "Você é a última esperança de um laboratório futurista. Analise os sistemas, decifre códigos e impeça uma falha que pode comprometer tudo.",
+          tags: ["Lógica", "Tecnologia"],
+          gradient: "linear-gradient(135deg,#064e5b,#111827,#155e75)",
+          featured: false,
+          releaseOrder: 3,
+          playUrl: "",
+          downloadUrl: ""
+        },
+        {
+          id: 4,
+          title: "Noite Sombria",
+          category: "Terror",
+          emoji: "👁️",
+          badge: "EM BREVE",
+          version: "v0.1.0",
+          platform: "PC",
+          developer: "ALCATECH GAMES",
+          description: "Algo está observando você no escuro.",
+          longDescription:
+            "Investigue uma construção abandonada, encontre pistas e tente sobreviver a uma noite em que nada é o que parece.",
+          tags: ["Suspense", "Mistério"],
+          gradient: "linear-gradient(135deg,#022c22,#171717,#082f49)",
+          featured: false,
+          releaseOrder: 4,
+          playUrl: "",
+          downloadUrl: ""
+        },
+        {
+          id: 5,
+          title: "Pixel Legends",
+          category: "Plataforma",
+          emoji: "👾",
+          badge: "EM BREVE",
+          version: "v0.1.0",
+          platform: "PC",
+          developer: "ALCATECH GAMES",
+          description: "Uma aventura retrô cheia de desafios.",
+          longDescription:
+            "Entre em um mundo pixelado, supere obstáculos, descubra segredos e avance por fases cheias de surpresas.",
+          tags: ["Pixel Art", "Clássico"],
+          gradient: "linear-gradient(135deg,#164e63,#0c4a6e,#082f49)",
+          featured: false,
+          releaseOrder: 5,
+          playUrl: "",
+          downloadUrl: ""
+        },
+        {
+          id: 6,
+          title: "Galactic Run",
+          category: "Ação",
+          emoji: "🚀",
+          badge: "EM BREVE",
+          version: "v0.1.0",
+          platform: "PC",
+          developer: "ALCATECH GAMES",
+          description: "Corra pelo espaço e supere seus limites.",
+          longDescription:
+            "Atravesse cenários espaciais, desvie de obstáculos e descubra até onde você consegue chegar nesta aventura de ação.",
+          tags: ["Espaço", "Arcade"],
+          gradient: "linear-gradient(135deg,#022c22,#155e75,#0c4a6e)",
+          featured: false,
+          releaseOrder: 6,
+          playUrl: "",
+          downloadUrl: ""
+        }
+      ]
+    };
+  },
+
+  computed: {
+    categories() {
+      return [
+        "Todos",
+        ...new Set(this.games.map(game => game.category))
+      ];
+    },
+
+    featuredGame() {
+      return this.games.find(game => game.featured) || this.games[0];
+    },
+
+    filteredGames() {
+      const term = this.search.trim().toLocaleLowerCase("pt-BR");
+
+      let result = this.games.filter(game => {
+        const matchesCategory =
+          this.activeCategory === "Todos" ||
+          game.category === this.activeCategory;
+
+        const searchableText = [
+          game.title,
+          game.description,
+          game.category,
+          ...game.tags
+        ].join(" ").toLocaleLowerCase("pt-BR");
+
+        const matchesSearch = searchableText.includes(term);
+
+        return matchesCategory && matchesSearch;
+      });
+
+      if (this.sortBy === "name") {
+        result.sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
+      } else if (this.sortBy === "newest") {
+        result.sort((a, b) => b.releaseOrder - a.releaseOrder);
+      } else {
+        result.sort((a, b) =>
+          Number(b.featured) - Number(a.featured)
+        );
+      }
+
+      return result;
+    }
+  },
+
+  methods: {
+    openGame(game) {
+      this.selectedGame = game;
+    },
+
+    playGame(game) {
+      if (game.playUrl) {
+        window.open(game.playUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      this.showNotice(
+        "Jogo ainda não configurado",
+        `Adicione o endereço para jogar "${game.title}" no campo playUrl do código.`
+      );
+    },
+
+    downloadGame(game) {
+      if (game.downloadUrl) {
+        const link = document.createElement("a");
+        link.href = game.downloadUrl;
+        link.download = "";
+        link.rel = "noopener";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        return;
+      }
+
+      this.showNotice(
+        "Download indisponível",
+        `Adicione o link real do arquivo de "${game.title}" no campo downloadUrl.`
+      );
+    },
+
+    showNotice(title, message) {
+      this.notice = { title, message };
+    }
+  }
+}).mount("#app");
+</script>
+
+</body>
+</html>
