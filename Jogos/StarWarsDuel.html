@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Wars: Lightsaber Duel - Ultra Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap');
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #020205;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+        .glow-blue { text-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff; }
+        .glow-red { text-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055; }
+        .glow-yellow { text-shadow: 0 0 10px #ffe600, 0 0 20px #ffe600; }
+
+        .scanlines {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        canvas { display: block; touch-action: none; }
+
+        .char-card {
+            transition: all 0.2s ease-out;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+        .char-card:hover {
+            transform: translateY(-3px) scale(1.03);
+        }
+        .char-card.selected-p1 {
+            border-color: #00f0ff !important;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.7);
+        }
+        .char-card.selected-p2 {
+            border-color: #ff0055 !important;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.7);
+        }
+
+        .char-card.cursor-p1 {
+            outline: 3px dashed #00f0ff;
+            outline-offset: 3px;
+        }
+
+        .char-card.cursor-p2 {
+            outline: 3px dashed #ff0055;
+            outline-offset: 3px;
+        }
+
+        .stage-card {
+            transition: all 0.2s ease-out;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+        .stage-card.selected {
+            border-color: #eab308 !important;
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.6);
+        }
+        .stage-card.cursor-stage {
+            outline: 3px dashed #eab308;
+            outline-offset: 3px;
+        }
+
+        @keyframes pulse-lock {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+        .animate-pulse-lock {
+            animation: pulse-lock 0.6s infinite;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-center items-center relative bg-black">
+
+    <div id="game-container" class="relative w-full h-full max-w-[1280px] max-h-[720px] shadow-2xl overflow-hidden border border-slate-800 md:rounded-xl">
+        
+        <canvas id="gameCanvas" class="w-full h-full"></canvas>
+
+        <div class="pointer-events-none absolute inset-0 scanlines opacity-30 z-10"></div>
+
+        <!-- HUD (Heads-Up Display) -->
+        <div id="hud" class="hidden absolute top-0 left-0 right-0 p-4 flex justify-between items-start pointer-events-none z-20">
+            <!-- Player 1 Status -->
+            <div class="w-[42%] flex flex-col gap-1">
+                <div class="flex justify-between items-center text-sm font-orbitron">
+                    <span id="p1-hud-name" class="font-bold text-cyan-400 tracking-wider">LUKE SKYWALKER</span>
+                    <div class="flex items-center gap-2">
+                        <div id="p1-rounds" class="flex gap-1 text-amber-400">
+                            <span class="p1-round-dot w-3 h-3 rounded-full border border-amber-400 bg-slate-900"></span>
+                            <span class="p1-round-dot w-3 h-3 rounded-full border border-amber-400 bg-slate-900"></span>
+                        </div>
+                        <span id="p1-hp-text" class="text-xs text-slate-300">100 HP</span>
+                    </div>
+                </div>
+                <div class="w-full h-5 bg-slate-950/90 border border-slate-700 rounded-sm p-0.5 relative overflow-hidden backdrop-blur-md">
+                    <div id="p1-hp-bar" class="h-full bg-gradient-to-r from-cyan-600 to-cyan-400 w-full transition-all duration-75 rounded-xs shadow-[0_0_10px_#00f0ff]"></div>
+                </div>
+                <div class="flex gap-2">
+                    <div class="w-1/2 h-2 bg-slate-950/90 border border-slate-800 rounded-sm p-0.5">
+                        <div id="p1-guard-bar" class="h-full bg-emerald-500 w-full transition-all duration-100 rounded-xs"></div>
+                    </div>
+                    <div class="w-1/2 h-2 bg-slate-950/90 border border-slate-800 rounded-sm p-0.5">
+                        <div id="p1-force-bar" class="h-full bg-blue-500 w-full transition-all duration-100 rounded-xs shadow-[0_0_8px_#3b82f6]"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VS Badge & Timer -->
+            <div class="flex flex-col items-center justify-center pt-1">
+                <div class="font-orbitron text-2xl font-black text-amber-400 glow-yellow tracking-widest">VS</div>
+                <div id="match-timer" class="font-orbitron text-2xl font-bold text-slate-100 mt-1">99</div>
+            </div>
+
+            <!-- Player 2 Status -->
+            <div class="w-[42%] flex flex-col gap-1 items-end">
+                <div class="flex justify-between items-center w-full text-sm font-orbitron">
+                    <div class="flex items-center gap-2">
+                        <span id="p2-hp-text" class="text-xs text-slate-300">100 HP</span>
+                        <div id="p2-rounds" class="flex gap-1 text-amber-400">
+                            <span class="p2-round-dot w-3 h-3 rounded-full border border-amber-400 bg-slate-900"></span>
+                            <span class="p2-round-dot w-3 h-3 rounded-full border border-amber-400 bg-slate-900"></span>
+                        </div>
+                    </div>
+                    <span id="p2-hud-name" class="font-bold text-red-500 tracking-wider">DARTH VADER</span>
+                </div>
+                <div class="w-full h-5 bg-slate-950/90 border border-slate-700 rounded-sm p-0.5 relative overflow-hidden backdrop-blur-md flex justify-end">
+                    <div id="p2-hp-bar" class="h-full bg-gradient-to-l from-red-600 to-red-500 w-full transition-all duration-75 rounded-xs shadow-[0_0_10px_#ff0055]"></div>
+                </div>
+                <div class="flex gap-2 w-full justify-end">
+                    <div class="w-1/2 h-2 bg-slate-950/90 border border-slate-800 rounded-sm p-0.5 flex justify-end">
+                        <div id="p2-guard-bar" class="h-full bg-emerald-500 w-full transition-all duration-100 rounded-xs"></div>
+                    </div>
+                    <div class="w-1/2 h-2 bg-slate-950/90 border border-slate-800 rounded-sm p-0.5 flex justify-end">
+                        <div id="p2-force-bar" class="h-full bg-red-600 w-full transition-all duration-100 rounded-xs shadow-[0_0_8px_#dc2626]"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Saber Lock Minigame Overlay -->
+        <div id="saber-lock-overlay" class="hidden absolute inset-0 flex flex-col justify-center items-center bg-black/40 backdrop-blur-sm z-30">
+            <h3 class="text-2xl md:text-3xl font-black font-orbitron text-amber-400 tracking-widest animate-pulse-lock glow-yellow mb-2">DUELO DE SABRES!</h3>
+            <p class="text-slate-200 text-sm font-orbitron mb-4">Aperte a tecla de ataque rápido! (P1: J | P2: Numpad 1)</p>
+            <div class="w-96 h-6 bg-slate-900 border-2 border-slate-700 rounded-full p-1 relative overflow-hidden">
+                <div id="saber-lock-bar" class="h-full bg-gradient-to-r from-cyan-500 via-amber-400 to-red-500 w-1/2 transition-all duration-75 rounded-full"></div>
+            </div>
+        </div>
+
+        <!-- Top Right Action Controls -->
+        <div class="absolute top-3 right-3 z-40 flex gap-2">
+            <button id="music-btn" class="bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-orbitron backdrop-blur-md transition pointer-events-auto">🎵 MÚSICA: ON</button>
+            <button id="audio-btn" class="bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-orbitron backdrop-blur-md transition pointer-events-auto">🔊 SOM: ON</button>
+            <button id="pause-btn" class="hidden bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-orbitron backdrop-blur-md transition pointer-events-auto">⏸️ PAUSA</button>
+        </div>
+
+        <!-- Main Selection Overlay -->
+        <div id="selection-screen" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md flex flex-col justify-between p-4 md:p-6 z-30 overflow-y-auto pointer-events-auto">
+            
+            <div class="text-center">
+                <h1 class="text-2xl md:text-4xl font-black font-orbitron text-amber-400 tracking-widest glow-yellow">STAR WARS</h1>
+                <h2 class="text-sm md:text-lg font-bold font-orbitron text-cyan-400 tracking-wider glow-blue">LIGHTSABER DUEL: ULTRA EDITION</h2>
+            </div>
+
+            <!-- Mode Selector -->
+            <div class="flex justify-center gap-2 my-1 font-orbitron text-xs">
+                <button id="mode-2p" class="mode-btn bg-cyan-600 text-white px-3 py-1.5 rounded-lg font-bold border border-cyan-400 transition pointer-events-auto">2 JOGADORES (VERSUS)</button>
+                <button id="mode-ai" class="mode-btn bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg font-bold border border-slate-700 transition pointer-events-auto">1 JOGADOR (VS IA)</button>
+                <button id="mode-practice" class="mode-btn bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg font-bold border border-slate-700 transition pointer-events-auto">TREINO</button>
+            </div>
+
+            <!-- Turn Banner / Selection Status Indicator -->
+            <div id="selection-status-banner" class="bg-slate-900/90 border border-slate-700 rounded-lg p-2 max-w-2xl mx-auto w-full text-center my-1 shadow-lg">
+                <div id="turn-instruction-title" class="font-orbitron font-black text-sm md:text-base text-cyan-400 animate-pulse tracking-widest">
+                    PLAYER 1: CLIQUE OU ESCOLHA SEU PERSONAGEM
+                </div>
+                <div id="turn-instruction-sub" class="text-[11px] font-mono text-slate-300 mt-0.5">
+                    Clique na carta OU use [A / D] Navegar | [F] Confirmar
+                </div>
+            </div>
+
+            <!-- AI Difficulty Selection -->
+            <div id="ai-diff-container" class="hidden flex justify-center items-center gap-2 font-orbitron text-xs my-1">
+                <span class="text-slate-400 font-bold">DIFICULDADE DA IA:</span>
+                <button class="ai-diff-btn bg-slate-800 text-slate-300 px-2.5 py-1 rounded border border-slate-700 pointer-events-auto" data-diff="PADAWAN">PADAWAN</button>
+                <button class="ai-diff-btn bg-amber-600 text-slate-950 font-bold px-2.5 py-1 rounded border border-amber-400 pointer-events-auto" data-diff="JEDI">JEDI</button>
+                <button class="ai-diff-btn bg-slate-800 text-slate-300 px-2.5 py-1 rounded border border-slate-700 pointer-events-auto" data-diff="SITH">LORD SITH</button>
+            </div>
+
+            <!-- Character Grid -->
+            <div id="character-grid" class="grid grid-cols-2 md:grid-cols-6 gap-2.5 max-w-5xl mx-auto my-auto w-full">
+                <!-- Luke -->
+                <div class="char-card bg-slate-900/90 border-2 border-slate-700 p-2.5 rounded-xl flex flex-col items-center relative" data-char="luke" data-idx="0">
+                    <span class="p1-badge hidden absolute top-1 left-1 bg-cyan-500 text-black font-black font-orbitron text-[9px] px-1.5 py-0.5 rounded">P1</span>
+                    <span class="p2-badge hidden absolute top-1 right-1 bg-red-500 text-white font-black font-orbitron text-[9px] px-1.5 py-0.5 rounded">P2</span>
+                    <div class="w-12 h-12 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-emerald-400 font-bold font-orbitron text-lg mb-1">LU</div>
+                    <div class="font-orbitron font-bold text-slate-100 text-xs text-center">Luke Skywalker</div>
+                    <div class="text-[9px] text-emerald-400 font-mono mb-0.5">Mestre Jedi</div>
+                    <div class="text-[9px] text-slate-400 w-full flex justify-between font-mono"><span>Esp:</span><span class="text-cyan-400">Leap Push</span></div>
+                </div>
+
+                <!-- Vader -->
+                <div class="char-card bg-slate-900/90 border-2 border-slate-700 p-2.5 rounded-xl flex flex-col items-center relative" data-char="vader" data-idx="1">
+                    <span class="p1-badge hidden absolute top-1 left-1 bg-cyan-500 text-black font-black font-orbitron text-[9px] px-1.5 py-0.5 rounded">P1</span>
+                    <span class="p2-badge hidden absolute top-1 right-1 bg-red-500 text-white font-black font-orbitron text-[9px] px-1.5 py-0.5 rounded">P2</span>
+                    <div class="w-12 h-12 rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center text-red-500 font-bold font-orbitron text-lg mb-1">DV</div>
+                    <div class="font-orbitron font-bold text-slate-100 text-xs text-center">Darth Vader</div>
+                    <div class="text-[9px] text-red-500 font-mono mb-0.5">Lord Sith</div>
+                    <div class="text-[9px] text-slate-400 w-full flex justify-between font-mono"><span>Esp:</span><span class="text-red-400">Choke Slam</span></div>
+                </div>
+
+                <!-- Maul -->
+                <div class="char-card bg-slate-900/90 border-2 border-slate-700 p-2.5 rounded-xl flex flex-col items-center relative" data-char="maul" data-idx="2">
+                    <span class="p1-badge hidden absolute top-1 left-1 bg-cyan-500 text-black font-black font-orbitron text-[9px] px-1.5 py-0.5 rounded">P1</span>
+                    <span class="p2-badge hidden absolute top-1 right-1 bg-red-500 text-white font-black font-orbitron text-[9px] px-1.5 py-0.5 rounded">P2</span>
+                    <div class="w-12 h-12 rounded-full bg-red-600/20 border-2 border-red-600 flex items-center justify-center text-red-400 font-bold font-orbitron text-lg mb-1">DM</div>
+                    <div class="font-orbitron font-bold text-slate-100 text-xs text-center">Darth Maul</div>
+                    <div class="text-[9px] text-red-400 font-mono mb-0.5">Sabre Duplo</div>
+                    <div class="text-[9px] text-slate-400 w-full flex justify-between font-mono"><span>Esp:</span><span class="text-red-400">Cyclone Throw</span></div>
+                </div>
+
+                <!-- Ahsoka -->
+                <div class="char-card bg-slate-900/90 border-2 border-slate-700 p-2.5 rounded-xl flex flex-col items-center relative" data-char="ahsoka" data-idx="3">
+                    <span class="p1-badge hidden absolute top-1 left-1 bg-cyan-500 text-black font-black font-orbitron text-[9px] px-1.5 py-0.5 rounded">P1</span>
+                    <span class="p2-badge hidden absolute top-1 right-1 bg-red-500 text-white font-black font-orbitron text-[9px] px-1.5 py-0.5 rounded">P2</span>
+                    <div class="w-12 h-12 rounded-full bg-slate-200/20 border-2 border-slate-200 flex items-center justify-center text-slate-100 font-bold font-orbitron text-lg mb-1">AT</div>
+                    <div class="font-orbitron font-bold text-slate-100 text-xs text-center">Ahsoka Tano</div>
+                    <div class="text-[9px] text-slate-300 font-mono mb-0.5">Sabres Duplos</div>
+                    <div class="text-[9px] text-slate-400 w-full flex justify-between font-mono"><span>Esp:</span><span class="text-slate-100">Dual Flurry</span></div>
+                </div>
+
+                <!-- Windu -->
+                <div class="char-card bg-slate-900/90 border-2 border-slate-700 p-2.5 rounded-xl flex flex-col items-center relative" data-char="windu" data-idx="4">
+                    <span class="p1-badge hidden absolute top-1 left-1 bg-cyan-500 text-black font-black font-orbitron text-[9px] px-1.5 py-0.5 rounded">P1</span>
+                    <span class="p2-badge hidden absolute top-1 right-1 bg-red-500 text-white font-black font-orbitron text-[9px] px-1.5 py-0.5 rounded">P2</span>
+                    <div class="w-12 h-12 rounded-full bg-purple-500/20 border-2 border-purple-400 flex items-center justify-center text-purple-400 font-bold font-orbitron text-lg mb-1">MW</div>
+                    <div class="font-orbitron font-bold text-slate-100 text-xs text-center">Mace Windu</div>
+                    <div class="text-[9px] text-purple-400 font-mono mb-0.5">Sabre Roxo</div>
+                    <div class="text-[9px] text-slate-400 w-full flex justify-between font-mono"><span>Esp:</span><span class="text-purple-400">Vaapad Stance</span></div>
+                </div>
+
+                <!-- Palpatine -->
+                <div class="char-card bg-slate-900/90 border-2 border-slate-700 p-2.5 rounded-xl flex flex-col items-center relative" data-char="palpatine" data-idx="5">
+                    <span class="p1-badge hidden absolute top-1 left-1 bg-cyan-500 text-black font-black font-orbitron text-[9px] px-1.5 py-0.5 rounded">P1</span>
+                    <span class="p2-badge hidden absolute top-1 right-1 bg-red-500 text-white font-black font-orbitron text-[9px] px-1.5 py-0.5 rounded">P2</span>
+                    <div class="w-12 h-12 rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-amber-400 font-bold font-orbitron text-lg mb-1">EP</div>
+                    <div class="font-orbitron font-bold text-slate-100 text-xs text-center">Imperador</div>
+                    <div class="text-[9px] text-amber-400 font-mono mb-0.5">Mestre Sith</div>
+                    <div class="text-[9px] text-slate-400 w-full flex justify-between font-mono"><span>Esp:</span><span class="text-amber-400">Lightning Strike</span></div>
+                </div>
+            </div>
+
+            <!-- Stage Selection -->
+            <div class="max-w-4xl mx-auto w-full my-1">
+                <div class="text-center font-orbitron text-xs font-bold text-amber-400 mb-1">ARENA DE BATALHA:</div>
+                <div id="stage-grid" class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div class="stage-card selected bg-slate-900/80 border-2 border-slate-700 p-2 rounded-lg cursor-pointer text-center" data-stage="mustafar" data-idx="0">
+                        <div class="font-orbitron font-bold text-xs text-amber-500">MUSTAFAR</div>
+                        <div class="text-[9px] text-slate-400">Planeta de Lava</div>
+                    </div>
+                    <div class="stage-card bg-slate-900/80 border-2 border-slate-700 p-2 rounded-lg cursor-pointer text-center" data-stage="deathstar" data-idx="1">
+                        <div class="font-orbitron font-bold text-xs text-cyan-400">ESTRELA DA MORTE</div>
+                        <div class="text-[9px] text-slate-400">Sala do Trono</div>
+                    </div>
+                    <div class="stage-card bg-slate-900/80 border-2 border-slate-700 p-2 rounded-lg cursor-pointer text-center" data-stage="bespin" data-idx="2">
+                        <div class="font-orbitron font-bold text-xs text-orange-400">BESPIN</div>
+                        <div class="text-[9px] text-slate-400">Cidade das Nuvens</div>
+                    </div>
+                    <div class="stage-card bg-slate-900/80 border-2 border-slate-700 p-2 rounded-lg cursor-pointer text-center" data-stage="geonosis" data-idx="3">
+                        <div class="font-orbitron font-bold text-xs text-red-400">GEONOSIS</div>
+                        <div class="text-[9px] text-slate-400">Arena de Areia</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Helper Box & Fight Button -->
+            <div class="flex flex-col md:flex-row gap-2.5 items-center justify-between max-w-5xl mx-auto w-full bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 pointer-events-auto">
+                <div class="text-[10px] text-slate-300 flex justify-between w-full md:w-auto md:gap-6 font-mono">
+                    <div><span class="text-cyan-400 font-bold">P1:</span> Clique / A,D,F</div>
+                    <div><span class="text-red-400 font-bold">P2:</span> Clique / Setas,Numpad0</div>
+                </div>
+
+                <div class="flex gap-2 w-full md:w-auto justify-end">
+                    <button id="reset-selection-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold font-orbitron px-3 py-2 rounded-lg text-xs border border-slate-700 transition pointer-events-auto">
+                        REINICIAR SELEÇÃO
+                    </button>
+                    <button id="start-duel-btn" class="w-full md:w-auto bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black font-orbitron px-6 py-2 rounded-lg text-xs md:text-sm tracking-wider shadow-[0_0_15px_rgba(245,158,11,0.5)] transition transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none pointer-events-auto">
+                        INICIAR COMBATE
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Pause Overlay -->
+        <div id="pause-screen" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-md flex flex-col justify-center items-center z-40 pointer-events-auto">
+            <h2 class="text-3xl md:text-4xl font-black font-orbitron text-amber-400 tracking-widest mb-6 glow-yellow">PAUSADO</h2>
+            <div class="flex flex-col gap-3 w-56 font-orbitron">
+                <button id="resume-btn" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 rounded-lg transition">CONTINUAR</button>
+                <button id="practice-hitbox-btn" class="hidden bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold py-2.5 rounded-lg border border-slate-700 transition">MOSTRAR HITBOXES: OFF</button>
+                <button id="change-chars-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 rounded-lg border border-slate-700 transition">MENU PRINCIPAL</button>
+            </div>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div id="game-over-screen" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col justify-center items-center p-6 z-40 pointer-events-auto">
+            <h2 id="winner-title" class="text-3xl md:text-5xl font-black font-orbitron tracking-wider mb-2 text-center">LUKE SKYWALKER VENCEU!</h2>
+            <p id="winner-subtitle" class="text-base md:text-xl font-bold text-slate-300 font-orbitron mb-8 text-center tracking-widest">CAMPEÃO DA GALÁXIA</p>
+            <button id="rematch-btn" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black font-orbitron px-8 py-3.5 rounded-xl text-lg tracking-wider shadow-[0_0_20px_rgba(245,158,11,0.5)] transition transform hover:scale-105 active:scale-95">
+                REMANCHE
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Web Audio Synthesizer
+        class WebAudioSoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+                this.musicEnabled = true;
+                this.humOsc = null;
+                this.humGain = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    this.startSaberHum();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            startSaberHum() {
+                if (!this.enabled || !this.ctx) return;
+                try {
+                    this.humOsc = this.ctx.createOscillator();
+                    this.humGain = this.ctx.createGain();
+                    this.humOsc.type = 'sawtooth';
+                    this.humOsc.frequency.setValueAtTime(60, this.ctx.currentTime);
+                    this.humGain.gain.setValueAtTime(0.015, this.ctx.currentTime);
+
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(180, this.ctx.currentTime);
+
+                    this.humOsc.connect(filter);
+                    filter.connect(this.humGain);
+                    this.humGain.connect(this.ctx.destination);
+                    this.humOsc.start();
+                } catch (e) {}
+            }
+
+            pitchBendHum(vel) {
+                if (this.humOsc && this.ctx) {
+                    this.humOsc.frequency.setTargetAtTime(60 + Math.abs(vel) * 15, this.ctx.currentTime, 0.05);
+                }
+            }
+
+            playSwing() {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(320, this.ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.12);
+            }
+
+            playClash() {
+                if (!this.enabled || !this.ctx) return;
+                const bufferSize = this.ctx.sampleRate * 0.15;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+
+                noise.connect(gain); gain.connect(this.ctx.destination);
+                noise.start();
+            }
+
+            playParry() {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(200, this.ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.2);
+            }
+
+            playForce() {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(80, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.35);
+                gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.35);
+            }
+
+            playLightning() {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, this.ctx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.3);
+            }
+        }
+
+        const soundEngine = new WebAudioSoundEngine();
+
+        // Game State Variables
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const GAME_WIDTH = 1280;
+        const GAME_HEIGHT = 720;
+        canvas.width = GAME_WIDTH;
+        canvas.height = GAME_HEIGHT;
+
+        let gameState = 'SELECTION'; // 'SELECTION', 'PLAYING', 'PAUSED', 'GAMEOVER'
+        let gameMode = '2P'; // '2P', 'AI', 'PRACTICE'
+        let aiDifficulty = 'JEDI';
+        let matchTimer = 99;
+        let timerInterval = null;
+        let screenShakeTime = 0;
+        let showHitboxes = false;
+        let saberLockActive = false;
+        let saberLockGauge = 50;
+
+        let p1RoundsWon = 0;
+        let p2RoundsWon = 0;
+
+        const CHARACTERS = {
+            luke: { name: 'Luke Skywalker', color: '#00f0ff', secondaryColor: '#00f0ff', hp: 100, speed: 6.5, attackDamage: 10, specialName: 'Leap Push', doubleBlade: false, dualSabers: false },
+            vader: { name: 'Darth Vader', color: '#ff0055', secondaryColor: '#ff0055', hp: 120, speed: 4.8, attackDamage: 14, specialName: 'Choke Slam', doubleBlade: false, dualSabers: false },
+            maul: { name: 'Darth Maul', color: '#ff0033', secondaryColor: '#ff0033', hp: 95, speed: 7.2, attackDamage: 9, specialName: 'Cyclone Throw', doubleBlade: true, dualSabers: false },
+            ahsoka: { name: 'Ahsoka Tano', color: '#ffffff', secondaryColor: '#00f0ff', hp: 90, speed: 7.8, attackDamage: 8, specialName: 'Dual Flurry', doubleBlade: false, dualSabers: true },
+            windu: { name: 'Mace Windu', color: '#a855f7', secondaryColor: '#a855f7', hp: 105, speed: 5.8, attackDamage: 12, specialName: 'Vaapad Counter', doubleBlade: false, dualSabers: false },
+            palpatine: { name: 'Imperador', color: '#f59e0b', secondaryColor: '#f59e0b', hp: 85, speed: 6.2, attackDamage: 11, specialName: 'Rayos Sith', doubleBlade: false, dualSabers: false }
+        };
+
+        const CHAR_KEYS = ['luke', 'vader', 'maul', 'ahsoka', 'windu', 'palpatine'];
+        const STAGE_KEYS = ['mustafar', 'deathstar', 'bespin', 'geonosis'];
+
+        let selectionPhase = 'P1_CHAR'; // 'P1_CHAR', 'P2_CHAR', 'STAGE', 'READY'
+        let p1CursorIdx = 0;
+        let p2CursorIdx = 1;
+        let stageCursorIdx = 0;
+
+        let selectedP1 = 'luke';
+        let selectedP2 = 'vader';
+        let selectedStage = 'mustafar';
+
+        const keys = {};
+
+        function updateSelectionUI() {
+            const bannerTitle = document.getElementById('turn-instruction-title');
+            const bannerSub = document.getElementById('turn-instruction-sub');
+            const startBtn = document.getElementById('start-duel-btn');
+
+            document.querySelectorAll('.char-card').forEach((card, idx) => {
+                card.classList.remove('selected-p1', 'selected-p2', 'cursor-p1', 'cursor-p2');
+                const p1Badge = card.querySelector('.p1-badge');
+                const p2Badge = card.querySelector('.p2-badge');
+                if (p1Badge) p1Badge.classList.add('hidden');
+                if (p2Badge) p2Badge.classList.add('hidden');
+
+                const charKey = card.getAttribute('data-char');
+
+                if (selectionPhase === 'P1_CHAR' && idx === p1CursorIdx) {
+                    card.classList.add('cursor-p1');
+                }
+                if (selectionPhase === 'P2_CHAR' && idx === p2CursorIdx) {
+                    card.classList.add('cursor-p2');
+                }
+
+                if (selectionPhase !== 'P1_CHAR' && charKey === selectedP1) {
+                    card.classList.add('selected-p1');
+                    if (p1Badge) p1Badge.classList.remove('hidden');
+                }
+                if ((selectionPhase === 'STAGE' || selectionPhase === 'READY') && charKey === selectedP2) {
+                    card.classList.add('selected-p2');
+                    if (p2Badge) p2Badge.classList.remove('hidden');
+                }
+            });
+
+            document.querySelectorAll('.stage-card').forEach((card, idx) => {
+                card.classList.remove('selected', 'cursor-stage');
+                if (selectionPhase === 'STAGE' && idx === stageCursorIdx) {
+                    card.classList.add('cursor-stage');
+                }
+                if (card.getAttribute('data-stage') === selectedStage) {
+                    card.classList.add('selected');
+                }
+            });
+
+            if (selectionPhase === 'P1_CHAR') {
+                bannerTitle.innerText = "PLAYER 1: CLIQUE OU ESCOLHA SEU PERSONAGEM";
+                bannerTitle.className = "font-orbitron font-black text-sm md:text-base text-cyan-400 animate-pulse tracking-widest";
+                bannerSub.innerText = "Clique na carta OU use [A / D] Navegar | [F] Confirmar";
+                if (startBtn) startBtn.disabled = true;
+            } else if (selectionPhase === 'P2_CHAR') {
+                if (gameMode === 'AI' || gameMode === 'PRACTICE') {
+                    bannerTitle.innerText = "ESCOLHA O OPONENTE (CPU / TREINO)";
+                    bannerTitle.className = "font-orbitron font-black text-sm md:text-base text-red-400 animate-pulse tracking-widest";
+                    bannerSub.innerText = "Clique na carta OU use [A / D] Navegar | [F] Confirmar";
+                } else {
+                    bannerTitle.innerText = "PLAYER 2: CLIQUE OU ESCOLHA SEU PERSONAGEM";
+                    bannerTitle.className = "font-orbitron font-black text-sm md:text-base text-red-500 animate-pulse tracking-widest";
+                    bannerSub.innerText = "Clique na carta OU use [Setas] Navegar | [Numpad 0 / /] Confirmar";
+                }
+                if (startBtn) startBtn.disabled = true;
+            } else if (selectionPhase === 'STAGE') {
+                bannerTitle.innerText = "CLIQUE OU ESCOLHA A ARENA DE BATALHA";
+                bannerTitle.className = "font-orbitron font-black text-sm md:text-base text-amber-400 animate-pulse tracking-widest";
+                bannerSub.innerText = "Clique na arena OU use [A/D/Setas] Navegar | [F / Enter] Confirmar";
+                if (startBtn) startBtn.disabled = true;
+            } else if (selectionPhase === 'READY') {
+                bannerTitle.innerText = "TUDO PRONTO! CLIQUE EM INICIAR COMBATE";
+                bannerTitle.className = "font-orbitron font-black text-sm md:text-base text-emerald-400 tracking-widest glow-yellow";
+                bannerSub.innerText = "Escolhas confirmadas. Que a Força esteja com você!";
+                if (startBtn) startBtn.disabled = false;
+            }
+        }
+
+        // Direct Mouse / Touch Clicks on Cards
+        document.querySelectorAll('.char-card').forEach((card, idx) => {
+            card.addEventListener('click', () => {
+                soundEngine.init();
+                const charKey = card.getAttribute('data-char');
+
+                if (selectionPhase === 'P1_CHAR') {
+                    p1CursorIdx = idx;
+                    selectedP1 = charKey;
+                    selectionPhase = 'P2_CHAR';
+                    if (p2CursorIdx === p1CursorIdx) p2CursorIdx = (p2CursorIdx + 1) % CHAR_KEYS.length;
+                    soundEngine.playClash();
+                } else if (selectionPhase === 'P2_CHAR') {
+                    p2CursorIdx = idx;
+                    selectedP2 = charKey;
+                    selectionPhase = 'STAGE';
+                    soundEngine.playClash();
+                } else if (selectionPhase === 'STAGE' || selectionPhase === 'READY') {
+                    // Click to re-assign current active slot
+                    p1CursorIdx = idx;
+                    selectedP1 = charKey;
+                    soundEngine.playSwing();
+                }
+                updateSelectionUI();
+            });
+        });
+
+        document.querySelectorAll('.stage-card').forEach((card, idx) => {
+            card.addEventListener('click', () => {
+                soundEngine.init();
+                stageCursorIdx = idx;
+                selectedStage = card.getAttribute('data-stage');
+                selectionPhase = 'READY';
+                soundEngine.playClash();
+                updateSelectionUI();
+            });
+        });
+
+        function resetSelectionFlow() {
+            selectionPhase = 'P1_CHAR';
+            p1CursorIdx = 0;
+            p2CursorIdx = 1;
+            stageCursorIdx = 0;
+            selectedP1 = CHAR_KEYS[p1CursorIdx];
+            selectedP2 = CHAR_KEYS[p2CursorIdx];
+            selectedStage = STAGE_KEYS[stageCursorIdx];
+            updateSelectionUI();
+        }
+
+        document.getElementById('reset-selection-btn').addEventListener('click', () => {
+            soundEngine.init();
+            resetSelectionFlow();
+        });
+
+        window.addEventListener('keydown', (e) => { 
+            keys[e.code] = true; 
+            soundEngine.init();
+            if (saberLockActive) handleSaberLockKey(e.code);
+
+            if (gameState === 'SELECTION') {
+                handleSelectionKeyboard(e.code);
+            }
+        });
+
+        window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+        function handleSelectionKeyboard(code) {
+            if (selectionPhase === 'P1_CHAR') {
+                if (code === 'KeyA') {
+                    p1CursorIdx = (p1CursorIdx - 1 + CHAR_KEYS.length) % CHAR_KEYS.length;
+                    soundEngine.playSwing();
+                } else if (code === 'KeyD') {
+                    p1CursorIdx = (p1CursorIdx + 1) % CHAR_KEYS.length;
+                    soundEngine.playSwing();
+                } else if (code === 'KeyF' || code === 'Space' || code === 'Enter') {
+                    selectedP1 = CHAR_KEYS[p1CursorIdx];
+                    selectionPhase = 'P2_CHAR';
+                    if (p2CursorIdx === p1CursorIdx) p2CursorIdx = (p2CursorIdx + 1) % CHAR_KEYS.length;
+                    soundEngine.playClash();
+                }
+            } else if (selectionPhase === 'P2_CHAR') {
+                if (gameMode === 'AI' || gameMode === 'PRACTICE') {
+                    if (code === 'KeyA') {
+                        p2CursorIdx = (p2CursorIdx - 1 + CHAR_KEYS.length) % CHAR_KEYS.length;
+                        soundEngine.playSwing();
+                    } else if (code === 'KeyD') {
+                        p2CursorIdx = (p2CursorIdx + 1) % CHAR_KEYS.length;
+                        soundEngine.playSwing();
+                    } else if (code === 'KeyF' || code === 'Space' || code === 'Enter') {
+                        selectedP2 = CHAR_KEYS[p2CursorIdx];
+                        selectionPhase = 'STAGE';
+                        soundEngine.playClash();
+                    }
+                } else {
+                    if (code === 'ArrowLeft') {
+                        p2CursorIdx = (p2CursorIdx - 1 + CHAR_KEYS.length) % CHAR_KEYS.length;
+                        soundEngine.playSwing();
+                    } else if (code === 'ArrowRight') {
+                        p2CursorIdx = (p2CursorIdx + 1) % CHAR_KEYS.length;
+                        soundEngine.playSwing();
+                    } else if (code === 'Numpad0' || code === 'Slash' || code === 'Enter') {
+                        selectedP2 = CHAR_KEYS[p2CursorIdx];
+                        selectionPhase = 'STAGE';
+                        soundEngine.playClash();
+                    }
+                }
+            } else if (selectionPhase === 'STAGE') {
+                if (code === 'KeyA' || code === 'ArrowLeft') {
+                    stageCursorIdx = (stageCursorIdx - 1 + STAGE_KEYS.length) % STAGE_KEYS.length;
+                    soundEngine.playSwing();
+                } else if (code === 'KeyD' || code === 'ArrowRight') {
+                    stageCursorIdx = (stageCursorIdx + 1) % STAGE_KEYS.length;
+                    soundEngine.playSwing();
+                } else if (code === 'KeyF' || code === 'Numpad0' || code === 'Slash' || code === 'Enter') {
+                    selectedStage = STAGE_KEYS[stageCursorIdx];
+                    selectionPhase = 'READY';
+                    soundEngine.playClash();
+                }
+            }
+            updateSelectionUI();
+        }
+
+        // Particle System
+        class Particle {
+            constructor(x, y, vx, vy, color, size, life) {
+                this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+                this.color = color; this.size = size; this.life = life; this.maxLife = life;
+            }
+            update() { this.x += this.vx; this.y += this.vy; this.life--; }
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        let particles = [];
+        let saberProjectiles = [];
+
+        function createSparks(x, y, color, count = 14) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 8;
+                particles.push(new Particle(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, color, 1.5 + Math.random() * 3, 12 + Math.random() * 15));
+            }
+        }
+
+        class Fighter {
+            constructor(id, x, y, charKey, controls, isAI = false) {
+                this.id = id; this.x = x; this.y = y;
+                this.width = 45; this.height = 110;
+                this.controls = controls;
+                this.isAI = isAI;
+                this.setupCharacter(charKey);
+
+                this.vx = 0; this.vy = 0;
+                this.isGrounded = false;
+                this.isCrouching = false;
+                this.facingRight = id === 1;
+
+                this.isDashing = false; this.dashCooldown = 0; this.iFrames = 0;
+
+                this.comboStep = 0; this.isAttacking = false;
+                this.attackFrame = 0; this.attackCooldown = 0; this.attackType = 'LIGHT';
+
+                this.isParrying = false; this.parryWindow = 0;
+                this.guard = 100; this.isGuardBroken = false;
+                this.isHit = false; this.hitStun = 0;
+
+                this.force = 100;
+                this.trailHistory = [];
+            }
+
+            setupCharacter(charKey) {
+                const config = CHARACTERS[charKey];
+                this.charKey = charKey;
+                this.name = config.name;
+                this.color = config.color;
+                this.secondaryColor = config.secondaryColor;
+                this.maxHp = config.hp;
+                this.hp = config.hp;
+                this.speed = config.speed;
+                this.damage = config.attackDamage;
+                this.specialName = config.specialName;
+                this.doubleBlade = config.doubleBlade;
+                this.dualSabers = config.dualSabers;
+            }
+
+            update(opponent) {
+                this.trailHistory.push({ x: this.x, y: this.y });
+                if (this.trailHistory.length > 5) this.trailHistory.shift();
+
+                if (this.iFrames > 0) this.iFrames--;
+                if (this.hitStun > 0) {
+                    this.hitStun--;
+                    this.isHit = true;
+                } else {
+                    this.isHit = false;
+                }
+
+                if (this.guard < 100 && !this.isParrying) this.guard = Math.min(100, this.guard + 0.25);
+                if (this.force < 100 && (gameMode !== 'PRACTICE' || this.id === 2)) this.force = Math.min(100, this.force + 0.3);
+
+                if (!this.isHit && !saberLockActive) {
+                    if (this.isAI) this.handleAILogic(opponent);
+                    else this.handleInput(opponent);
+                }
+
+                this.vy += 0.8;
+                this.x += this.vx;
+                this.y += this.vy;
+
+                const floorY = GAME_HEIGHT - 120;
+                if (this.y + this.height >= floorY) {
+                    this.y = floorY - this.height;
+                    this.vy = 0;
+                    this.isGrounded = true;
+                }
+
+                if (this.x < 30) this.x = 30;
+                if (this.x + this.width > GAME_WIDTH - 30) this.x = GAME_WIDTH - 30 - this.width;
+
+                if (!this.isAttacking && !this.isDashing) this.facingRight = this.x < opponent.x;
+
+                if (this.isAttacking) {
+                    this.attackFrame++;
+                    if (this.attackFrame > 14) {
+                        this.isAttacking = false;
+                        this.attackFrame = 0;
+                    }
+                }
+
+                if (this.parryWindow > 0) this.parryWindow--;
+                else this.isParrying = false;
+
+                if (this.attackCooldown > 0) this.attackCooldown--;
+                if (this.dashCooldown > 0) this.dashCooldown--;
+
+                soundEngine.pitchBendHum(Math.abs(this.vx));
+            }
+
+            handleAILogic(opponent) {
+                const dist = Math.abs(this.x - opponent.x);
+                let reactRate = aiDifficulty === 'PADAWAN' ? 0.02 : (aiDifficulty === 'JEDI' ? 0.05 : 0.09);
+
+                if (dist > 110) {
+                    this.vx = this.x < opponent.x ? this.speed * 0.8 : -this.speed * 0.8;
+                } else {
+                    this.vx = 0;
+                    if (Math.random() < reactRate && this.attackCooldown === 0) {
+                        this.isAttacking = true;
+                        this.attackFrame = 0;
+                        this.attackType = Math.random() < 0.5 ? 'LIGHT' : 'HEAVY';
+                        this.attackCooldown = 20;
+                        soundEngine.playSwing();
+                    }
+                }
+
+                if (opponent.isAttacking && dist < 120 && Math.random() < reactRate * 1.5 && this.guard > 20) {
+                    this.isParrying = true;
+                    this.parryWindow = 10;
+                }
+
+                if (this.force >= 40 && dist < 250 && Math.random() < 0.02) {
+                    this.useForceSpecial(opponent);
+                }
+            }
+
+            handleInput(opponent) {
+                const c = this.controls;
+
+                this.isCrouching = keys[c.crouch] && this.isGrounded;
+
+                this.vx = 0;
+                if (!this.isCrouching && !this.isAttacking && !this.isDashing) {
+                    if (keys[c.left]) this.vx = -this.speed;
+                    if (keys[c.right]) this.vx = this.speed;
+                }
+
+                if (keys[c.dash] && this.dashCooldown === 0 && !this.isDashing) {
+                    this.isDashing = true;
+                    this.iFrames = 12;
+                    this.dashCooldown = 38;
+                    const dashDir = keys[c.left] ? -1 : (keys[c.right] ? 1 : (this.facingRight ? 1 : -1));
+                    this.vx = dashDir * (this.speed * 2.5);
+                    createSparks(this.x + this.width / 2, this.y + this.height / 2, this.color, 10);
+                    setTimeout(() => { this.isDashing = false; }, 200);
+                }
+
+                if (keys[c.jump] && this.isGrounded && !this.isCrouching) {
+                    this.vy = -16;
+                    this.isGrounded = false;
+                }
+
+                if (keys[c.block] && this.guard > 10 && !this.isParrying) {
+                    this.isParrying = true;
+                    this.parryWindow = 12;
+                    this.guard -= 8;
+                    soundEngine.playParry();
+                }
+
+                if (keys[c.lightAtk] && this.attackCooldown === 0 && !this.isParrying) {
+                    this.isAttacking = true;
+                    this.attackFrame = 0;
+                    this.attackType = 'LIGHT';
+                    this.attackCooldown = 16 - (this.comboStep * 2);
+                    this.comboStep = (this.comboStep + 1) % 3;
+                    soundEngine.playSwing();
+                }
+
+                if (keys[c.heavyAtk] && this.attackCooldown === 0 && !this.isParrying) {
+                    this.isAttacking = true;
+                    this.attackFrame = 0;
+                    this.attackType = 'HEAVY';
+                    this.attackCooldown = 28;
+                    soundEngine.playSwing();
+                }
+
+                if (keys[c.special] && this.force >= 40 && !this.isAttacking) {
+                    this.useForceSpecial(opponent);
+                }
+            }
+
+            useForceSpecial(opponent) {
+                this.force -= 40;
+                soundEngine.playForce();
+                const dir = this.facingRight ? 1 : -1;
+
+                if (this.charKey === 'luke') {
+                    this.vy = -12;
+                    this.vx = dir * 14;
+                    createSparks(this.x, this.y, '#00f0ff', 20);
+                    if (Math.abs(this.x - opponent.x) < 220) {
+                        opponent.hp = Math.max(0, opponent.hp - 16);
+                        opponent.hitStun = 18;
+                        screenShakeTime = 12;
+                    }
+                } else if (this.charKey === 'vader') {
+                    createSparks(opponent.x + 20, opponent.y + 20, '#ff0055', 20);
+                    if (Math.abs(this.x - opponent.x) < 280) {
+                        opponent.vy = -8;
+                        opponent.hitStun = 28;
+                        opponent.hp = Math.max(0, opponent.hp - 20);
+                        screenShakeTime = 15;
+                    }
+                } else if (this.charKey === 'maul') {
+                    saberProjectiles.push({ x: this.x + (dir * 40), y: this.y + 35, vx: dir * 16, color: this.color, ownerId: this.id, damage: 16, life: 30 });
+                } else if (this.charKey === 'ahsoka') {
+                    this.x += dir * 220;
+                    this.iFrames = 15;
+                    createSparks(this.x, this.y + 40, '#ffffff', 25);
+                    if (Math.abs(this.x - opponent.x) < 100) {
+                        opponent.hp = Math.max(0, opponent.hp - 18);
+                        opponent.hitStun = 12;
+                    }
+                } else if (this.charKey === 'windu') {
+                    this.isParrying = true;
+                    this.parryWindow = 30;
+                    createSparks(this.x + 20, this.y + 40, '#a855f7', 20);
+                } else if (this.charKey === 'palpatine') {
+                    soundEngine.playLightning();
+                    for (let i = 0; i < 6; i++) {
+                        createSparks(this.x + (dir * (i * 45)), this.y + 40, '#f59e0b', 8);
+                    }
+                    if (Math.abs(this.x - opponent.x) < 260) {
+                        opponent.hp = Math.max(0, opponent.hp - 18);
+                        opponent.hitStun = 20;
+                        screenShakeTime = 10;
+                    }
+                }
+            }
+
+            getSaberHitbox() {
+                if (!this.isAttacking) return null;
+                const reach = this.doubleBlade ? 105 : (this.attackType === 'HEAVY' ? 95 : 80);
+                return {
+                    x: this.facingRight ? this.x + this.width : this.x - reach,
+                    y: this.y + 20,
+                    width: reach,
+                    height: 35
+                };
+            }
+
+            draw(ctx) {
+                ctx.save();
+
+                this.trailHistory.forEach((t, i) => {
+                    ctx.globalAlpha = (i / 10);
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(t.x, t.y, this.width, this.height);
+                });
+                ctx.globalAlpha = 1.0;
+
+                ctx.fillStyle = 'rgba(0,0,0,0.45)';
+                ctx.beginPath();
+                ctx.ellipse(this.x + this.width / 2, GAME_HEIGHT - 120, 28, 7, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = this.isHit ? '#ffffff' : (this.charKey === 'vader' ? '#0f172a' : '#1e293b');
+                const currentHeight = this.isCrouching ? this.height * 0.65 : this.height;
+                const currentY = this.isCrouching ? this.y + (this.height * 0.35) : this.y;
+
+                ctx.fillRect(this.x, currentY, this.width, currentHeight);
+
+                ctx.fillStyle = this.charKey === 'vader' ? '#000000' : (this.charKey === 'windu' ? '#581c87' : '#fde047');
+                ctx.fillRect(this.x + 8, currentY - 22, 28, 22);
+
+                if (this.isParrying) {
+                    ctx.strokeStyle = '#00f0ff';
+                    ctx.lineWidth = 4;
+                    ctx.shadowColor = '#00f0ff';
+                    ctx.shadowBlur = 15;
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.width / 2, currentY + currentHeight / 2, 45, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                const handX = this.facingRight ? this.x + this.width - 5 : this.x + 5;
+                const handY = currentY + 30;
+
+                let angle = this.facingRight ? -Math.PI / 3 : -Math.PI / 1.5;
+                if (this.isAttacking) {
+                    const progress = this.attackFrame / 14;
+                    angle = this.facingRight ? (-Math.PI / 1.2) + (progress * Math.PI * 1.4) : (Math.PI / 1.2) - (progress * Math.PI * 1.4);
+                }
+
+                this.drawSingleBlade(ctx, handX, handY, angle, this.color);
+
+                if (this.doubleBlade) {
+                    this.drawSingleBlade(ctx, handX, handY, angle + Math.PI, this.color);
+                } else if (this.dualSabers) {
+                    const offHandX = this.facingRight ? this.x + 5 : this.x + this.width - 5;
+                    this.drawSingleBlade(ctx, offHandX, handY + 10, angle + 0.5, this.secondaryColor, 55);
+                }
+
+                if (showHitboxes) {
+                    ctx.strokeStyle = '#00ff00';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(this.x, this.y, this.width, this.height);
+                    const hb = this.getSaberHitbox();
+                    if (hb) {
+                        ctx.strokeStyle = '#ff0000';
+                        ctx.strokeRect(hb.x, hb.y, hb.width, hb.height);
+                    }
+                }
+
+                ctx.restore();
+            }
+
+            drawSingleBlade(ctx, hX, hY, angle, color, bladeLen = 85) {
+                const tipX = hX + Math.cos(angle) * bladeLen * (this.facingRight ? 1 : -1);
+                const tipY = hY + Math.sin(angle) * bladeLen;
+
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 12;
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 22;
+                ctx.beginPath();
+                ctx.moveTo(hX, hY); ctx.lineTo(tipX, tipY);
+                ctx.stroke();
+
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 4;
+                ctx.shadowBlur = 6;
+                ctx.beginPath();
+                ctx.moveTo(hX, hY); ctx.lineTo(tipX, tipY);
+                ctx.stroke();
+            }
+        }
+
+        const p1Controls = { left: 'KeyA', right: 'KeyD', jump: 'KeyW', crouch: 'KeyS', lightAtk: 'KeyJ', heavyAtk: 'KeyK', special: 'KeyL', block: 'KeyS', dash: 'ShiftLeft' };
+        const p2Controls = { left: 'ArrowLeft', right: 'ArrowRight', jump: 'ArrowUp', crouch: 'ArrowDown', lightAtk: 'Numpad1', heavyAtk: 'Numpad2', special: 'Numpad3', block: 'ArrowDown', dash: 'Enter' };
+
+        let player1 = new Fighter(1, 200, GAME_HEIGHT - 230, selectedP1, p1Controls);
+        let player2 = new Fighter(2, GAME_WIDTH - 250, GAME_HEIGHT - 230, selectedP2, p2Controls);
+
+        function checkCombatCollisions() {
+            const p1Saber = player1.getSaberHitbox();
+            const p2Saber = player2.getSaberHitbox();
+
+            if (p1Saber && p2Saber && player1.attackFrame === 4 && player2.attackFrame === 4 && !saberLockActive) {
+                triggerSaberLock();
+                return;
+            }
+
+            if (p1Saber && player1.attackFrame === 5) {
+                if (checkRectOverlap(p1Saber, player2) && player2.iFrames === 0) {
+                    if (player2.isParrying) {
+                        createSparks(p1Saber.x, p1Saber.y, '#00f0ff', 20);
+                        player1.hitStun = 22;
+                        player1.vx = player1.facingRight ? -14 : 14;
+                        soundEngine.playParry();
+                    } else {
+                        const baseDmg = player1.attackType === 'HEAVY' ? player1.damage * 1.5 : player1.damage;
+                        player2.hp = Math.max(0, player2.hp - baseDmg);
+                        player2.hitStun = 14;
+                        player2.vx = player1.facingRight ? 12 : -12;
+                        createSparks(player2.x + 20, player2.y + 30, player1.color, 18);
+                        soundEngine.playClash();
+                        screenShakeTime = 8;
+                    }
+                }
+            }
+
+            if (p2Saber && player2.attackFrame === 5) {
+                if (checkRectOverlap(p2Saber, player1) && player1.iFrames === 0) {
+                    if (player1.isParrying) {
+                        createSparks(p2Saber.x, p2Saber.y, '#00f0ff', 20);
+                        player2.hitStun = 22;
+                        player2.vx = player2.facingRight ? -14 : 14;
+                        soundEngine.playParry();
+                    } else {
+                        const baseDmg = player2.attackType === 'HEAVY' ? player2.damage * 1.5 : player2.damage;
+                        player1.hp = Math.max(0, player1.hp - baseDmg);
+                        player1.hitStun = 14;
+                        player1.vx = player2.facingRight ? 12 : -12;
+                        createSparks(player1.x + 20, player1.y + 30, player2.color, 18);
+                        soundEngine.playClash();
+                        screenShakeTime = 8;
+                    }
+                }
+            }
+
+            for (let i = saberProjectiles.length - 1; i >= 0; i--) {
+                const proj = saberProjectiles[i];
+                proj.x += proj.vx;
+                proj.life--;
+
+                const target = proj.ownerId === 1 ? player2 : player1;
+                if (checkRectOverlap({ x: proj.x - 20, y: proj.y - 10, width: 40, height: 20 }, target) && target.iFrames === 0) {
+                    target.hp = Math.max(0, target.hp - proj.damage);
+                    target.hitStun = 14;
+                    createSparks(proj.x, proj.y, proj.color, 15);
+                    saberProjectiles.splice(i, 1);
+                    continue;
+                }
+
+                if (proj.life <= 0) saberProjectiles.splice(i, 1);
+            }
+        }
+
+        function triggerSaberLock() {
+            saberLockActive = true;
+            saberLockGauge = 50;
+            document.getElementById('saber-lock-overlay').classList.remove('hidden');
+            soundEngine.playClash();
+
+            const lockTimer = setInterval(() => {
+                if (!saberLockActive) { clearInterval(lockTimer); return; }
+                if (gameMode === 'AI') {
+                    saberLockGauge -= aiDifficulty === 'PADAWAN' ? 1.5 : (aiDifficulty === 'JEDI' ? 3 : 5);
+                }
+                updateSaberLockBar();
+            }, 100);
+
+            setTimeout(() => {
+                if (saberLockActive) resolveSaberLock();
+            }, 3000);
+        }
+
+        function handleSaberLockKey(code) {
+            if (code === p1Controls.lightAtk) saberLockGauge += 4;
+            if (code === p2Controls.lightAtk && gameMode === '2P') saberLockGauge -= 4;
+            updateSaberLockBar();
+        }
+
+        function updateSaberLockBar() {
+            saberLockGauge = Math.max(0, Math.min(100, saberLockGauge));
+            document.getElementById('saber-lock-bar').style.width = saberLockGauge + '%';
+        }
+
+        function resolveSaberLock() {
+            saberLockActive = false;
+            document.getElementById('saber-lock-overlay').classList.add('hidden');
+            if (saberLockGauge > 50) {
+                player2.hp = Math.max(0, player2.hp - 15);
+                player2.vx = 18;
+                player2.hitStun = 20;
+            } else {
+                player1.hp = Math.max(0, player1.hp - 15);
+                player1.vx = -18;
+                player1.hitStun = 20;
+            }
+            screenShakeTime = 15;
+            soundEngine.playForce();
+        }
+
+        function checkRectOverlap(r1, r2) {
+            return r1.x < r2.x + r2.width && r1.x + r1.width > r2.x && r1.y < r2.y + r2.height && r1.y + r1.height > r2.y;
+        }
+
+        function drawStageBackground(ctx) {
+            if (selectedStage === 'mustafar') {
+                const bgGrad = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
+                bgGrad.addColorStop(0, '#0f0505'); bgGrad.addColorStop(0.7, '#2a0808'); bgGrad.addColorStop(1, '#450a0a');
+                ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+                if (Math.random() < 0.4) {
+                    particles.push(new Particle(Math.random() * GAME_WIDTH, GAME_HEIGHT - 60, (Math.random() - 0.5) * 2, -Math.random() * 3, '#ff6600', 2, 40));
+                }
+
+                ctx.fillStyle = '#1c1917'; ctx.fillRect(0, GAME_HEIGHT - 120, GAME_WIDTH, 120);
+                ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 4; ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 15;
+                ctx.beginPath(); ctx.moveTo(0, GAME_HEIGHT - 120); ctx.lineTo(GAME_WIDTH, GAME_HEIGHT - 120); ctx.stroke();
+
+            } else if (selectedStage === 'deathstar') {
+                const bgGrad = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
+                bgGrad.addColorStop(0, '#020617'); bgGrad.addColorStop(1, '#0f172a');
+                ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+                ctx.strokeStyle = '#334155'; ctx.lineWidth = 5;
+                ctx.beginPath(); ctx.arc(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 40, 240, 0, Math.PI * 2); ctx.stroke();
+
+                ctx.fillStyle = '#0f172a'; ctx.fillRect(0, GAME_HEIGHT - 120, GAME_WIDTH, 120);
+                ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 3; ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 12;
+                ctx.beginPath(); ctx.moveTo(0, GAME_HEIGHT - 120); ctx.lineTo(GAME_WIDTH, GAME_HEIGHT - 120); ctx.stroke();
+
+            } else if (selectedStage === 'bespin') {
+                const bgGrad = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
+                bgGrad.addColorStop(0, '#431407'); bgGrad.addColorStop(0.5, '#9a3412'); bgGrad.addColorStop(1, '#ea580c');
+                ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+                ctx.fillStyle = '#334155'; ctx.fillRect(0, GAME_HEIGHT - 120, GAME_WIDTH, 120);
+                ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3; ctx.shadowColor = '#f97316'; ctx.shadowBlur = 12;
+                ctx.beginPath(); ctx.moveTo(0, GAME_HEIGHT - 120); ctx.lineTo(GAME_WIDTH, GAME_HEIGHT - 120); ctx.stroke();
+
+            } else if (selectedStage === 'geonosis') {
+                const bgGrad = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
+                bgGrad.addColorStop(0, '#451a03'); bgGrad.addColorStop(0.6, '#78350f'); bgGrad.addColorStop(1, '#9a3412');
+                ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+                if (Math.random() < 0.5) {
+                    particles.push(new Particle(GAME_WIDTH, Math.random() * GAME_HEIGHT, -4 - Math.random() * 4, 1, '#d97706', 2, 60));
+                }
+
+                ctx.fillStyle = '#78350f'; ctx.fillRect(0, GAME_HEIGHT - 120, GAME_WIDTH, 120);
+                ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 3; ctx.shadowColor = '#f59e0b'; ctx.shadowBlur = 10;
+                ctx.beginPath(); ctx.moveTo(0, GAME_HEIGHT - 120); ctx.lineTo(GAME_WIDTH, GAME_HEIGHT - 120); ctx.stroke();
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById('p1-hp-bar').style.width = ((player1.hp / player1.maxHp) * 100) + '%';
+            document.getElementById('p1-hp-text').innerText = Math.ceil(player1.hp) + ' HP';
+            document.getElementById('p1-guard-bar').style.width = player1.guard + '%';
+            document.getElementById('p1-force-bar').style.width = player1.force + '%';
+
+            document.getElementById('p2-hp-bar').style.width = ((player2.hp / player2.maxHp) * 100) + '%';
+            document.getElementById('p2-hp-text').innerText = Math.ceil(player2.hp) + ' HP';
+            document.getElementById('p2-guard-bar').style.width = player2.guard + '%';
+            document.getElementById('p2-force-bar').style.width = player2.force + '%';
+
+            document.getElementById('match-timer').innerText = matchTimer;
+        }
+
+        function checkRoundWin() {
+            if (player1.hp <= 0 || player2.hp <= 0 || matchTimer <= 0) {
+                if (player1.hp > player2.hp) p1RoundsWon++;
+                else if (player2.hp > player1.hp) p2RoundsWon++;
+
+                updateRoundDots();
+
+                if (p1RoundsWon >= 2 || p2RoundsWon >= 2) {
+                    gameState = 'GAMEOVER';
+                    clearInterval(timerInterval);
+                    const gameOverScreen = document.getElementById('game-over-screen');
+                    const winnerTitle = document.getElementById('winner-title');
+
+                    gameOverScreen.classList.remove('hidden');
+                    if (p1RoundsWon > p2RoundsWon) {
+                        winnerTitle.innerText = `${player1.name} VENCEU!`;
+                        winnerTitle.className = "text-3xl md:text-5xl font-black font-orbitron tracking-wider mb-2 text-center text-cyan-400 glow-blue";
+                    } else {
+                        winnerTitle.innerText = `${player2.name} VENCEU!`;
+                        winnerTitle.className = "text-3xl md:text-5xl font-black font-orbitron tracking-wider mb-2 text-center text-red-500 glow-red";
+                    }
+                } else {
+                    resetFighters();
+                }
+            }
+        }
+
+        function updateRoundDots() {
+            const p1Dots = document.querySelectorAll('.p1-round-dot');
+            const p2Dots = document.querySelectorAll('.p2-round-dot');
+            p1Dots.forEach((dot, idx) => { if (idx < p1RoundsWon) dot.classList.add('bg-amber-400'); });
+            p2Dots.forEach((dot, idx) => { if (idx < p2RoundsWon) dot.classList.add('bg-amber-400'); });
+        }
+
+        function mainLoop() {
+            ctx.save();
+
+            if (screenShakeTime > 0) {
+                screenShakeTime--;
+                ctx.translate((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
+            }
+
+            ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            drawStageBackground(ctx);
+
+            if (gameState === 'PLAYING') {
+                player1.update(player2);
+                player2.update(player1);
+                checkCombatCollisions();
+
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    particles[i].update();
+                    if (particles[i].life <= 0) particles.splice(i, 1);
+                }
+
+                checkRoundWin();
+                updateHUD();
+            }
+
+            player1.draw(ctx);
+            player2.draw(ctx);
+
+            saberProjectiles.forEach(proj => {
+                ctx.strokeStyle = proj.color; ctx.lineWidth = 8;
+                ctx.shadowColor = proj.color; ctx.shadowBlur = 15;
+                ctx.beginPath(); ctx.arc(proj.x, proj.y, 18, 0, Math.PI * 2); ctx.stroke();
+            });
+
+            particles.forEach(p => p.draw(ctx));
+
+            ctx.restore();
+            requestAnimationFrame(mainLoop);
+        }
+
+        // Mode Switching
+        document.getElementById('mode-2p').addEventListener('click', () => {
+            soundEngine.init();
+            gameMode = '2P';
+            document.querySelectorAll('.mode-btn').forEach(b => b.className = "mode-btn bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg font-bold border border-slate-700 transition pointer-events-auto");
+            document.getElementById('mode-2p').className = "mode-btn bg-cyan-600 text-white px-3 py-1.5 rounded-lg font-bold border border-cyan-400 transition pointer-events-auto";
+            document.getElementById('ai-diff-container').classList.add('hidden');
+            resetSelectionFlow();
+        });
+
+        document.getElementById('mode-ai').addEventListener('click', () => {
+            soundEngine.init();
+            gameMode = 'AI';
+            document.querySelectorAll('.mode-btn').forEach(b => b.className = "mode-btn bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg font-bold border border-slate-700 transition pointer-events-auto");
+            document.getElementById('mode-ai').className = "mode-btn bg-cyan-600 text-white px-3 py-1.5 rounded-lg font-bold border border-cyan-400 transition pointer-events-auto";
+            document.getElementById('ai-diff-container').classList.remove('hidden');
+            resetSelectionFlow();
+        });
+
+        document.getElementById('mode-practice').addEventListener('click', () => {
+            soundEngine.init();
+            gameMode = 'PRACTICE';
+            document.querySelectorAll('.mode-btn').forEach(b => b.className = "mode-btn bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg font-bold border border-slate-700 transition pointer-events-auto");
+            document.getElementById('mode-practice').className = "mode-btn bg-cyan-600 text-white px-3 py-1.5 rounded-lg font-bold border border-slate-700 transition pointer-events-auto";
+            document.getElementById('ai-diff-container').classList.add('hidden');
+            resetSelectionFlow();
+        });
+
+        document.querySelectorAll('.ai-diff-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                soundEngine.init();
+                aiDifficulty = btn.getAttribute('data-diff');
+                document.querySelectorAll('.ai-diff-btn').forEach(b => b.className = "ai-diff-btn bg-slate-800 text-slate-300 px-2.5 py-1 rounded border border-slate-700 pointer-events-auto");
+                btn.className = "ai-diff-btn bg-amber-600 text-slate-950 font-bold px-2.5 py-1 rounded border border-amber-400 pointer-events-auto";
+            });
+        });
+
+        document.getElementById('start-duel-btn').addEventListener('click', () => {
+            soundEngine.init();
+            document.getElementById('selection-screen').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            document.getElementById('pause-btn').classList.remove('hidden');
+
+            document.getElementById('p1-hud-name').innerText = CHARACTERS[selectedP1].name;
+            document.getElementById('p2-hud-name').innerText = CHARACTERS[selectedP2].name;
+
+            p1RoundsWon = 0; p2RoundsWon = 0;
+            updateRoundDots();
+
+            player1 = new Fighter(1, 200, GAME_HEIGHT - 230, selectedP1, p1Controls, false);
+            player2 = new Fighter(2, GAME_WIDTH - 250, GAME_HEIGHT - 230, selectedP2, p2Controls, gameMode === 'AI' || gameMode === 'PRACTICE');
+
+            if (gameMode === 'PRACTICE') document.getElementById('practice-hitbox-btn').classList.remove('hidden');
+            else document.getElementById('practice-hitbox-btn').classList.add('hidden');
+
+            resetFighters();
+            gameState = 'PLAYING';
+            startTimer();
+        });
+
+        function togglePause() {
+            if (gameState === 'PLAYING') {
+                gameState = 'PAUSED';
+                document.getElementById('pause-screen').classList.remove('hidden');
+            } else if (gameState === 'PAUSED') {
+                gameState = 'PLAYING';
+                document.getElementById('pause-screen').classList.add('hidden');
+            }
+        }
+
+        document.getElementById('pause-btn').addEventListener('click', togglePause);
+        document.getElementById('resume-btn').addEventListener('click', togglePause);
+        document.getElementById('practice-hitbox-btn').addEventListener('click', () => {
+            showHitboxes = !showHitboxes;
+            document.getElementById('practice-hitbox-btn').innerText = showHitboxes ? 'MOSTRAR HITBOXES: ON' : 'MOSTRAR HITBOXES: OFF';
+        });
+
+        document.getElementById('change-chars-btn').addEventListener('click', () => {
+            document.getElementById('pause-screen').classList.add('hidden');
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('selection-screen').classList.remove('hidden');
+            gameState = 'SELECTION';
+            resetSelectionFlow();
+        });
+
+        document.getElementById('rematch-btn').addEventListener('click', () => {
+            document.getElementById('game-over-screen').classList.add('hidden');
+            p1RoundsWon = 0; p2RoundsWon = 0;
+            updateRoundDots();
+            resetFighters();
+            gameState = 'PLAYING';
+            startTimer();
+        });
+
+        document.getElementById('audio-btn').addEventListener('click', () => {
+            soundEngine.enabled = !soundEngine.enabled;
+            document.getElementById('audio-btn').innerText = soundEngine.enabled ? '🔊 SOM: ON' : '🔇 SOM: OFF';
+        });
+
+        document.getElementById('music-btn').addEventListener('click', () => {
+            soundEngine.musicEnabled = !soundEngine.musicEnabled;
+            document.getElementById('music-btn').innerText = soundEngine.musicEnabled ? '🎵 MÚSICA: ON' : '🔇 MÚSICA: OFF';
+        });
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (gameState === 'PLAYING' && matchTimer > 0) matchTimer--;
+            }, 1000);
+        }
+
+        function resetFighters() {
+            player1.x = 200; player1.y = GAME_HEIGHT - 230; player1.hp = player1.maxHp; player1.force = 100; player1.guard = 100; player1.vx = 0; player1.vy = 0;
+            player2.x = GAME_WIDTH - 250; player2.y = GAME_HEIGHT - 230; player2.hp = player2.maxHp; player2.force = 100; player2.guard = 100; player2.vx = 0; player2.vy = 0;
+            matchTimer = 99;
+            particles = []; saberProjectiles = [];
+        }
+
+        // Init Selection Flow on load
+        resetSelectionFlow();
+
+        requestAnimationFrame(mainLoop);
+    </script>
+</body>
+</html>

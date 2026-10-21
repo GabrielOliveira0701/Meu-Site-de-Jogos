@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Escape Room — A Mansão</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--cyan:#00eaff;--green:#00ff91;--red:#ff304f;--gold:#ffd166}
+body{overflow:hidden;background:#020304;color:#fff;font-family:Arial,sans-serif}
+button{cursor:pointer;border:0;border-radius:6px;padding:10px 16px;background:#087f8e;color:#fff;font-weight:bold;transition:background .2s}
+button:hover{background:#00aabd}
+#game{width:100vw;height:100vh;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 45%,rgba(40,45,50,.2),rgba(0,0,0,.98) 75%),linear-gradient(90deg,#0a0b0d,#1a1b1e,#0b0c0f);transition:background .8s ease,filter .2s ease}
+#game.power-on{background:radial-gradient(circle at 50% 45%,rgba(0,234,255,.15),rgba(0,0,0,.92) 80%),linear-gradient(90deg,#101a24,#1c2d3d,#0f1922)}
+@keyframes powerFlicker{0%{filter:brightness(.2) opacity(.8)}15%{filter:brightness(1.8) opacity(1)}30%{filter:brightness(.4) opacity(.5)}45%{filter:brightness(1.5) opacity(1)}60%{filter:brightness(.3) opacity(.6)}75%{filter:brightness(1.7) opacity(1)}100%{filter:brightness(1) opacity(1)}}
+.flicker{animation:powerFlicker .7s ease-in-out}
+
+/* CENÁRIO */
+#ceiling{position:absolute;top:0;width:100%;height:18%;background:linear-gradient(#202226,#0d0e10);border-bottom:5px solid #08090a;transition:background .8s ease}
+#game.power-on #ceiling{background:linear-gradient(#2a3540,#131b24)}
+#floor{position:absolute;bottom:0;width:100%;height:27%;background:repeating-linear-gradient(90deg,#170d09 0,#170d09 100px,#21140e 103px,#21140e 200px);border-top:7px solid #090705;transition:background .8s ease}
+#game.power-on #floor{background:repeating-linear-gradient(90deg,#24150e 0,#24150e 100px,#342017 103px,#342017 200px)}
+#lamp{position:absolute;left:50%;top:8%;width:28px;height:28px;transform:translateX(-50%);border-radius:50%;background:#555033;box-shadow:0 0 5px rgba(255,243,170,.2);transition:all .8s ease}
+#game.power-on #lamp{background:#fff3aa;box-shadow:0 0 25px #fff3aa,0 0 120px rgba(0,234,255,.6)}
+#title{position:absolute;z-index:20;left:50%;top:16px;transform:translateX(-50%);font-size:21px;letter-spacing:5px;color:#aaa;transition:color .8s ease}
+#game.power-on #title{color:var(--cyan);text-shadow:0 0 10px rgba(0,234,255,.5)}
+
+/* OBJETOS */
+.object{cursor:pointer;transition:.2s}
+.object:hover{filter:brightness(1.35);transform:scale(1.015)}
+#diary.object:hover{transform:rotate(-7deg) scale(1.015)}
+#paper.object:hover{transform:rotate(8deg) scale(1.015)}
+#window{position:absolute;left:5%;top:25%;width:190px;height:165px;border:12px solid #2b1c13;background:linear-gradient(135deg,#020817,#152c50,#03050a);box-shadow:inset 0 0 30px #000,0 10px 20px #000}
+#window:before{content:"";position:absolute;left:50%;top:0;width:6px;height:100%;transform:translateX(-50%);background:#2b1c13}
+#window:after{content:"";position:absolute;left:0;top:50%;width:100%;height:6px;transform:translateY(-50%);background:#2b1c13}
+#moon{position:absolute;right:20px;top:18px;width:43px;height:43px;border-radius:50%;background:#edf3ff;box-shadow:0 0 25px #c0d2ff}
+#painting{position:absolute;left:28%;top:22%;width:175px;height:215px;border:14px solid #5a3c1e;background:#050505;box-shadow:0 10px 30px #000}
+#paintingFace{height:100%;display:flex;align-items:center;justify-content:center;font-size:78px;filter:grayscale(1)}
+#paintingCompartment{display:none;position:absolute;left:calc(28% + 60px);top:calc(22% + 65px);width:55px;height:70px;background:#151515;border:4px solid #555;z-index:4}
+#paintingCompartment.open{display:block}
+#fuse{display:none;position:absolute;right:28%;bottom:30%;width:42px;height:65px;background:#ddd;border:4px solid #555;z-index:10}
+#fuse:after{content:"";position:absolute;left:8px;top:10px;width:17px;height:35px;background:#ffcf33}
+#shelf{position:absolute;left:10%;bottom:28%;width:250px;height:155px;background:repeating-linear-gradient(0deg,#452816 0,#452816 35px,#1c0f09 38px,#1c0f09 43px);border:8px solid #1f110a;box-shadow:0 10px 20px #000}
+.book{position:absolute;bottom:48px;width:29px;cursor:pointer}
+.book:nth-child(1){left:18px;height:74px;background:#6e1620}
+.book:nth-child(2){left:55px;height:65px;background:#15446d}
+.book:nth-child(3){left:92px;height:83px;background:#4e6e1e}
+.book:nth-child(4){left:130px;height:70px;background:#552e69}
+#desk{position:absolute;left:39%;bottom:18%;width:320px;height:27px;background:#381f11;box-shadow:0 10px 20px #000}
+#desk:before,#desk:after{content:"";position:absolute;top:22px;width:25px;height:150px;background:#24130a}
+#desk:before{left:20px}
+#desk:after{right:20px}
+#drawer{position:absolute;left:44%;bottom:20%;width:125px;height:36px;background:#472815;border:4px solid #24130a}
+#drawerHandle{position:absolute;left:50%;top:9px;width:35px;height:7px;transform:translateX(-50%);background:#82592c}
+#diary{position:absolute;left:52%;bottom:21%;width:90px;height:60px;background:#4a141a;border:4px solid #240b0e;transform:rotate(-7deg);box-shadow:0 6px 10px #000}
+#diary:after{content:"DIÁRIO";position:absolute;left:20px;top:20px;font-size:10px}
+#paper{position:absolute;left:46%;bottom:21%;width:72px;height:58px;background:#b8b08d;color:#222;padding:8px;font-size:10px;transform:rotate(8deg);box-shadow:0 5px 10px #000;font-family:'Courier New',Courier,monospace;font-weight:bold;line-height:1.2}
+#clock{position:absolute;right:27%;top:25%;width:120px;height:120px;border-radius:50%;background:#111;border:8px solid #54391e;box-shadow:0 7px 15px #000}
+.hand{position:absolute;left:50%;bottom:50%;width:4px;background:#eee;transform-origin:bottom;transition:transform .3s cubic-bezier(.4,2,.55,.44)}
+#hour{height:30px;transform:translateX(-50%) rotate(180deg)}
+#minute{height:42px;transform:translateX(-50%) rotate(0deg)}
+#clockCenter{position:absolute;left:50%;top:50%;width:10px;height:10px;transform:translate(-50%,-50%);border-radius:50%;background:#fff}
+#panel{position:absolute;right:25%;bottom:27%;width:115px;height:140px;background:#202225;border:7px solid #090a0c;box-shadow:0 8px 20px #000}
+#panelLight{position:absolute;left:50%;top:17px;width:15px;height:15px;transform:translateX(-50%);border-radius:50%;background:#550000;box-shadow:0 0 8px red}
+#panelSwitch{position:absolute;left:50%;top:60px;width:28px;height:45px;transform:translateX(-50%);background:#111;border:3px solid #777}
+#panelSwitch:after{content:"";position:absolute;left:6px;top:5px;width:10px;height:25px;background:#666;transition:.3s}
+#panel.on #panelSwitch:after{top:12px;background:#00ff9d}
+#panel.on #panelLight{background:#00ff88;box-shadow:0 0 15px #00ff88}
+#safe{position:absolute;right:7%;bottom:26%;width:160px;height:125px;background:linear-gradient(135deg,#3c3c3c,#111);border:7px solid #111;border-radius:8px;box-shadow:0 10px 25px #000,inset 0 0 25px #111}
+#safeDial{position:absolute;left:40px;top:20px;width:67px;height:67px;border:7px solid #aaa;border-radius:50%}
+#safeDial:after{content:"";position:absolute;left:24px;top:0;width:5px;height:25px;background:#aaa}
+#key{display:none;position:absolute;right:31%;bottom:22%;width:80px;height:35px;z-index:12}
+#key:before{content:"";position:absolute;width:25px;height:25px;border:7px solid #ffd700;border-radius:50%}
+#key:after{content:"";position:absolute;left:25px;top:9px;width:55px;height:8px;background:#ffd700;box-shadow:30px 0 #ffd700}
+#door{position:absolute;right:2%;bottom:0;width:180px;height:360px;background:linear-gradient(90deg,#151515,#373737,#111);border:10px solid #080808;box-shadow:inset 0 0 40px #000}
+#doorHandle{position:absolute;right:20px;top:175px;width:16px;height:16px;border-radius:50%;background:#d7b000;box-shadow:0 0 12px gold}
+.lock{position:absolute;left:15px;width:35px;height:35px;border:4px solid #a22;border-radius:5px;background:#170606}
+#lock1{top:105px}
+#lock2{top:150px}
+#lock3{top:195px}
+.lock.open{border-color:#00ff88;box-shadow:0 0 15px #00ff88}
+
+/* HUD */
+#hud{position:absolute;left:18px;top:18px;width:250px;padding:12px;background:rgba(0,0,0,.88);border:1px solid #444;border-radius:8px;z-index:50}
+#timer{font-size:20px;color:var(--gold);margin-bottom:8px}
+#objective{font-size:11px;color:#aaa;line-height:1.5;margin-bottom:10px}
+#inventoryTitle{color:var(--cyan);font-size:12px;margin-bottom:7px}
+#inventory{display:flex;flex-wrap:wrap;gap:5px}
+.item{padding:7px;background:#151515;border:1px solid #555;border-radius:5px;font-size:11px;cursor:pointer;transition:.2s;user-select:none}
+.item:hover{border-color:#00eaff;background:#10252a}
+.item.selected{border-color:var(--cyan);color:#00eaff;box-shadow:0 0 8px rgba(0,229,255,.5),inset 0 0 8px rgba(0,229,255,.1);transform:translateY(-2px)}
+#selectedInfo{margin-top:8px;min-height:25px;color:#00eaff;font-size:11px}
+#hintButton{width:100%;margin-top:9px;background:#332c13;color:#ffd166;border:1px solid #705d20}
+#message{position:absolute;left:50%;bottom:25px;transform:translateX(-50%);width:min(650px,90%);padding:15px 20px;background:rgba(0,0,0,.94);border:1px solid var(--cyan);border-radius:8px;text-align:center;opacity:0;pointer-events:none;transition:.3s;z-index:100}
+#message.show{opacity:1}
+
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.9);align-items:center;justify-content:center}
+.modalBox{width:min(460px,90%);padding:28px;background:#111418;border:2px solid var(--cyan);border-radius:12px;text-align:center;box-shadow:0 0 40px rgba(0,229,255,.2)}
+.modalBox h2{color:var(--cyan);margin-bottom:15px}
+.modalBox p{color:#ccc;line-height:1.6;margin-bottom:18px}
+.paperZoom{background:#e8dfb3!important;color:#222!important;border:8px solid #a39562!important;box-shadow:0 0 30px rgba(232,223,179,.3)!important;font-family:'Courier New',Courier,monospace}
+.paperZoom h2{color:#543818!important}
+.paperZoom p{color:#2d1f0e!important;font-weight:bold}
+input{width:100%;padding:13px;background:#050607;color:#fff;border:1px solid #555;border-radius:5px;text-align:center;font-size:22px;letter-spacing:6px}
+
+/* TELA INICIAL */
+#start{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:radial-gradient(circle,#0a1f26,#020304 75%)}
+#start h1{font-size:44px;letter-spacing:6px;color:var(--cyan);text-shadow:0 0 25px rgba(0,234,255,.6);margin-bottom:18px}
+#start p{max-width:560px;color:#ccc;line-height:1.7;margin-bottom:14px}
+#start button{margin-top:14px;font-size:18px;padding:14px 34px}
+
+/* NOVOS */
+#dark{position:absolute;inset:0;z-index:30;pointer-events:none;background:radial-gradient(circle 190px at var(--mx,50%) var(--my,50%),transparent 0,rgba(0,0,0,.35) 60%,rgba(0,0,0,.94) 100%);transition:opacity 1.2s}
+#game.power-on #dark{opacity:0}
+#hudRow{display:flex;gap:6px;margin-top:6px}
+#hudRow button{flex:1;padding:8px;font-size:12px}
+#hudRow #muteBtn{flex:0 0 44px}
+#medal{display:none;position:absolute;left:195px;bottom:50px;width:26px;height:26px;border-radius:50%;background:radial-gradient(#ffe38a,#b8860b);box-shadow:0 0 12px gold;cursor:pointer;animation:pulse 1.4s infinite alternate}
+@keyframes pulse{to{box-shadow:0 0 24px gold}}
+#start .diff{font-size:14px;padding:10px 14px;margin:6px 4px;background:#1b2a30}
+#start .diff.sel{background:#087f8e;box-shadow:0 0 10px var(--cyan)}
+#door.opening{transform-origin:right center;transform:perspective(700px) rotateY(75deg);transition:transform 1.2s ease-in;filter:brightness(2)}
+
+/* FINAIS */
+#win,#gameOver{display:none;position:fixed;inset:0;z-index:400;align-items:center;justify-content:center;flex-direction:column;text-align:center}
+#win{background:radial-gradient(circle,#073f3f,#020606 75%)}
+#gameOver{background:radial-gradient(circle,#420707,#050000 75%)}
+#win h1{font-size:58px;color:#0ff;text-shadow:0 0 25px #0ff,0 0 60px #0ff}
+#gameOver h1{font-size:55px;color:#ff304f}
+.finalText{max-width:600px;margin-top:18px;color:#ddd;font-size:18px;line-height:1.6}
+
+@media(max-width:850px){
+#title{font-size:13px}
+#window{width:130px;height:110px}
+#painting{width:125px;height:155px}
+#paintingFace{font-size:50px}
+#shelf{width:170px}
+#desk{width:220px}
+#clock{width:90px;height:90px}
+#safe{width:120px;height:95px}
+#door{width:120px;height:280px}
+#hud{width:200px}
+#start h1{font-size:30px}
+#medal{left:132px;bottom:125px}
+}
+</style>
+</head>
+<body>
+
+<div id="game">
+    <div id="ceiling"></div>
+    <div id="floor"></div>
+    <div id="lamp"></div>
+    <div id="dark"></div>
+    <div id="title">A MANSÃO — O DESPERTAR</div>
+
+    <div id="window" class="object" onclick="inspectWindow()"><div id="moon"></div></div>
+
+    <div id="painting" class="object" onclick="inspectPainting()"><div id="paintingFace">👤</div></div>
+    <div id="paintingCompartment"></div>
+
+    <div id="shelf">
+        <div class="book" onclick="inspectBook(1)"></div>
+        <div class="book" onclick="inspectBook(2)"></div>
+        <div class="book" onclick="inspectBook(3)"></div>
+        <div class="book" onclick="inspectBook(4)"></div>
+        <div id="medal" onclick="takeMedal()"></div>
+    </div>
+
+    <div id="desk"></div>
+    <div id="drawer" class="object" onclick="openDrawer()"><div id="drawerHandle"></div></div>
+    <div id="diary" class="object" onclick="inspectDiary()"></div>
+    <div id="paper" class="object" onclick="inspectPaper()"></div>
+
+    <div id="clock" class="object" onclick="rotateClockHand(event)">
+        <div id="hour" class="hand"></div>
+        <div id="minute" class="hand"></div>
+        <div id="clockCenter"></div>
+    </div>
+
+    <div id="panel" class="object" onclick="usePanel()">
+        <div id="panelLight"></div>
+        <div id="panelSwitch"></div>
+    </div>
+
+    <div id="fuse" class="object" onclick="takeFuse()"></div>
+    <div id="safe" class="object" onclick="openSafe()"><div id="safeDial"></div></div>
+    <div id="key" class="object" onclick="takeKey()"></div>
+
+    <div id="door" class="object" onclick="tryDoor()">
+        <div id="lock1" class="lock"></div>
+        <div id="lock2" class="lock"></div>
+        <div id="lock3" class="lock"></div>
+        <div id="doorHandle"></div>
+    </div>
+
+    <div id="hud">
+        <div id="timer">⏱️ 15:00</div>
+        <div id="objective">Objetivo: descubra como abrir as três travas.</div>
+        <div id="inventoryTitle">🎒 INVENTÁRIO — clique em um item para selecioná-lo</div>
+        <div id="inventory"></div>
+        <div id="selectedInfo">Nenhum item selecionado.</div>
+        <button id="hintButton" onclick="giveHint()">💡 PEDIR DICA</button>
+        <div id="hudRow">
+            <button onclick="showNotes()">📓 DOCUMENTOS</button>
+            <button id="muteBtn" onclick="toggleMute()">🔊</button>
+        </div>
+    </div>
+
+    <div id="message"></div>
+</div>
+
+<!-- TELA INICIAL -->
+<div id="start">
+    <h1>A MANSÃO</h1>
+    <p>Você acorda trancado numa mansão escura e silenciosa. A porta tem três travas, e você tem 15 minutos para descobrir como abri-las.</p>
+    <p style="color:#ffd166">Clique nos objetos para investigar. Selecione itens no inventário para usá-los.</p>
+    <div id="diffRow">
+        <button class="diff" data-d="easy" onclick="setDifficulty('easy')">FÁCIL · 20 min · dicas grátis</button>
+        <button class="diff" data-d="normal" onclick="setDifficulty('normal')">NORMAL · 15 min</button>
+        <button class="diff" data-d="hard" onclick="setDifficulty('hard')">DIFÍCIL · 10 min · sem dicas</button>
+    </div>
+    <button id="startButton" onclick="startGame()">COMEÇAR</button>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal">
+    <div id="modalBox" class="modalBox">
+        <h2 id="modalTitle"></h2>
+        <p id="modalText"></p>
+        <div id="modalContent"></div>
+        <br>
+        <button onclick="closeModal()">FECHAR</button>
+    </div>
+</div>
+
+<!-- VITÓRIA -->
+<div id="win">
+    <h1>VOCÊ ESCAPOU! 🔓</h1>
+    <p class="finalText">As três travas foram abertas. A porta se abre lentamente.</p>
+    <p class="finalText" style="color:#ffd166">Mas existe outro corredor além dela...</p>
+    <p class="finalText" id="scoreText" style="color:#0ff"></p>
+    <button onclick="resetGame()">JOGAR NOVAMENTE</button>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameOver">
+    <h1>⏰ TEMPO ESGOTADO</h1>
+    <p class="finalText">A mansão ficou completamente silenciosa.</p>
+    <button onclick="resetGame()">TENTAR NOVAMENTE</button>
+</div>
+
+<script>
+/* =========================================================
+   ÁUDIO SINTETIZADO (Web Audio API)
+========================================================= */
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+let master, ambient, dripTimer;
+let muted = localStorage.getItem("escapeMuted") === "1";
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new AudioCtx();
+        master = audioCtx.createGain();
+        master.gain.value = muted ? 0 : 1;
+        master.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function startAmbient() {
+    initAudio();
+    if (ambient) return;
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'triangle';
+    o.frequency.value = state.panel ? 140 : 80;
+    g.gain.value = 0.04;
+    o.connect(g); g.connect(master); o.start();
+    ambient = { o, g };
+    scheduleDrip();
+}
+
+function stopAmbient() {
+    if (ambient) { try { ambient.o.stop(); } catch (e) {} ambient = null; }
+    clearTimeout(dripTimer);
+}
+
+function powerAmbient() {
+    if (ambient) ambient.o.frequency.linearRampToValueAtTime(140, audioCtx.currentTime + 1.5);
+}
+
+function scheduleDrip() {
+    dripTimer = setTimeout(() => {
+        if (!ambient) return;
+        playSound('drip');
+        scheduleDrip();
+    }, 3000 + Math.random() * 6000);
+}
+
+function toggleMute() {
+    muted = !muted;
+    localStorage.setItem("escapeMuted", muted ? "1" : "0");
+    if (master) master.gain.value = muted ? 0 : 1;
+    $("muteBtn").innerText = muted ? "🔇" : "🔊";
+}
+
+function playSound(type) {
+    initAudio();
+    if (!audioCtx) return;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(master);
+    const now = audioCtx.currentTime;
+
+    if (type === 'click') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+        osc.start(now); osc.stop(now + 0.05);
+    } else if (type === 'unlock') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.setValueAtTime(600, now + 0.08);
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+        osc.start(now); osc.stop(now + 0.2);
+    } else if (type === 'power') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.linearRampToValueAtTime(520, now + 0.4);
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+        osc.start(now); osc.stop(now + 0.4);
+    } else if (type === 'drip') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1400, now);
+        osc.frequency.exponentialRampToValueAtTime(500, now + 0.09);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.1);
+        osc.start(now); osc.stop(now + 0.1);
+    } else if (type === 'error') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(150, now);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+        osc.start(now); osc.stop(now + 0.25);
+    }
+}
+
+/* =========================================================
+   ESTADO E GERAÇÃO ALEATÓRIA
+========================================================= */
+const SAVE_KEY = "escapeMansionV6";
+
+function generateRandomCode() {
+    const d1 = Math.floor(Math.random() * 10).toString();
+    const d2 = Math.floor(Math.random() * 10).toString();
+    const d3 = Math.floor(Math.random() * 10).toString();
+    const targetHour = Math.floor(Math.random() * 12) + 1;
+    const d4 = (targetHour % 10).toString(); // último algarismo da hora
+    return { fullCode: `${d1}${d2}${d3}${d4}`, d1, d2, d3, d4, targetHour };
+}
+
+const DEFAULT_STATE = {
+    time: 900,
+    lastSave: Date.now(),
+    codeData: null,
+    painting: false,
+    compartment: false,
+    screwdriver: false,
+    fuse: false,
+    key: false,
+    safe: false,
+    panel: false,
+    paper: false,
+    clock: false,
+    clockHour: 6,
+    hourClue: false,
+    started: false,
+    bookOrder: null,
+    bookSolved: false,
+    medal: false,
+    notes: [],
+    difficulty: "normal",
+    lock1: false,
+    lock2: false,
+    lock3: false,
+    hints: 0
+};
+
+let state = { ...DEFAULT_STATE };
+let selectedItem = null;
+let timer;
+
+const DIFF = {
+    easy:   { label: "Fácil",   time: 1200, penalty: 0 },
+    normal: { label: "Normal",  time: 900,  penalty: 30 },
+    hard:   { label: "Difícil", time: 600,  penalty: null }
+};
+let finished = false;
+let continuing = false;
+let bookSeq = [];
+const BOOK_NAMES = { 1: "vermelho", 2: "azul", 3: "verde", 4: "roxo" };
+
+function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function addNote(t, x) {
+    if (!state.notes.some(n => n.t === t)) { state.notes.push({ t, x }); save(); }
+}
+
+function showNotes() {
+    const html = state.notes.map(n =>
+        `<div style="margin-bottom:10px"><b style="color:var(--gold)">${n.t}</b><br><span style="color:#ccc">${n.x}</span></div>`
+    ).join("");
+    modal(
+        "📓 Documentos",
+        state.notes.length ? "Pistas que você já encontrou:" : "Você ainda não encontrou nenhuma pista.",
+        `<div style="text-align:left;max-height:260px;overflow:auto;font-size:14px;line-height:1.5">${html}</div>`
+    );
+}
+
+function markDifficulty() {
+    document.querySelectorAll('.diff').forEach(b => b.classList.toggle('sel', b.dataset.d === state.difficulty));
+}
+
+function updateHintLabel() {
+    const p = DIFF[state.difficulty].penalty;
+    $("hintButton").innerText = p === null ? "💡 DICAS DESATIVADAS" : p === 0 ? "💡 PEDIR DICA" : `💡 PEDIR DICA (−${p} s)`;
+}
+
+function setDifficulty(d) {
+    if (continuing) return;
+    playSound('click');
+    state.difficulty = d;
+    state.time = DIFF[d].time;
+    markDifficulty();
+    updateHintLabel();
+    updateTimerDisplay();
+    save();
+}
+
+/* =========================================================
+   UTILIDADES
+========================================================= */
+function $(id) { return document.getElementById(id); }
+
+function message(text) {
+    $("message").innerText = text;
+    $("message").classList.add("show");
+    clearTimeout(message.timer);
+    message.timer = setTimeout(() => $("message").classList.remove("show"), 3500);
+}
+
+function renderPuzzlesFromCode() {
+    if (!state.codeData) return;
+    const { d1, d2, d3 } = state.codeData;
+    $("paper").innerHTML = `${d1}<br>${d2}<br>${d3}<br>?`;
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+function modal(title, text, content = "", isPaper = false) {
+    playSound('click');
+    $("modalTitle").innerText = title;
+    $("modalText").innerText = text;
+    $("modalContent").innerHTML = content;
+    $("modalBox").classList.toggle("paperZoom", isPaper);
+    $("modal").style.display = "flex";
+}
+
+function closeModal() {
+    playSound('click');
+    $("modal").style.display = "none";
+}
+
+/* =========================================================
+   JANELA — pista da hora
+========================================================= */
+const HOUR_WORDS = ["doze","uma","duas","três","quatro","cinco","seis","sete","oito","nove","dez","onze"];
+
+function hourPhrase(h) {
+    return h === 1 ? "à uma hora" : `às ${HOUR_WORDS[h % 12]} horas`;
+}
+
+function inspectWindow() {
+    state.hourClue = true;
+    const t = `No vidro, riscado com as unhas, está escrito: "Tudo parou ${hourPhrase(state.codeData.targetHour)} em ponto."`;
+    addNote("Janela", t);
+    save();
+    modal("🌙 Janela", t);
+}
+
+/* =========================================================
+   QUADRO
+========================================================= */
+function inspectPainting() {
+    if (selectedItem === "screwdriver") { useScrewdriverOnPainting(); return; }
+
+    if (!state.painting) {
+        state.painting = true;
+        $("painting").style.borderColor = "#00e5ff";
+        save();
+        playSound('click');
+        message("Você percebe que a moldura pode ser removida.");
+        return;
+    }
+    playSound('click');
+    if (!state.compartment) {
+        message("Há um parafuso na lateral. Talvez uma ferramenta possa abrir a moldura.");
+    } else {
+        message("O compartimento atrás do quadro está aberto.");
+    }
+}
+
+/* =========================================================
+   GAVETA
+========================================================= */
+function openDrawer() {
+    if (state.screwdriver) {
+        playSound('click');
+        message("A gaveta está vazia.");
+        return;
+    }
+    if (!state.painting) {
+        playSound('click');
+        message("A gaveta está emperrada. Talvez algo na sala possa ajudar a soltá-la.");
+        return;
+    }
+    modal(
+        "🗄️ Gaveta",
+        "Você forçou a gaveta e encontra uma pequena ferramenta.",
+        `<button onclick="getScrewdriver()">PEGAR CHAVE DE FENDA</button>`
+    );
+}
+
+function getScrewdriver() {
+    state.screwdriver = true;
+    closeModal();
+    playSound('unlock');
+    updateInventory();
+    save();
+    message("🪛 Você encontrou uma chave de fenda.");
+}
+
+/* =========================================================
+   LIVROS
+========================================================= */
+function inspectBook(n) {
+    const text = {
+        1: "O livro vermelho está cheio de páginas arrancadas.",
+        2: "O livro azul diz: 'A energia dorme atrás do rosto que observa.'",
+        3: "O livro verde mostra o desenho de uma chave de fenda.",
+        4: "Uma anotação: 'O código termina com o último algarismo da hora em que tudo parou. Exemplo: 11 horas → 1. 12 horas → 2.'"
+    };
+    const title = "Livro " + BOOK_NAMES[n];
+    addNote(title, text[n]);
+
+    bookSeq.push(n);
+    if (bookSeq.length > 4) bookSeq.shift();
+    const solved = checkBookOrder();
+
+    modal("📚 " + title, text[n] + (solved ? "\n\n🔓 Algo estalou dentro da estante... um compartimento secreto se abriu!" : ""));
+}
+
+function checkBookOrder() {
+    if (state.bookSolved || bookSeq.length < 4) return false;
+    if (bookSeq.join() !== state.bookOrder.join()) return false;
+    state.bookSolved = true;
+    $("medal").style.display = "block";
+    save();
+    return true;
+}
+
+function takeMedal() {
+    state.medal = true;
+    $("medal").style.display = "none";
+    playSound('unlock');
+    updateInventory();
+    save();
+    message("🏅 Medalhão adicionado ao inventário. Parece encaixar em algo redondo na porta.");
+}
+
+/* =========================================================
+   DIÁRIO E PAPEL
+========================================================= */
+function inspectDiary() {
+    const order = state.bookOrder.map(i => BOOK_NAMES[i]).join(", ");
+    const t = `Três travas protegem a porta. Uma responde ao cofre. Uma responde à energia. A última responde àquilo que você descobriu. Uma página dobrada: 'Os livros escondem um segredo. Leia-os nesta ordem: ${order}.'`;
+    addNote("Diário", t);
+    modal("📕 Diário", t, "", true);
+}
+
+function inspectPaper() {
+    state.paper = true;
+    const { d1, d2, d3 } = state.codeData;
+    const t = `A sequência está incompleta: ${d1} — ${d2} — ${d3} — ?. O quarto número não está aqui.`;
+    addNote("Papel", t);
+    save();
+    modal("📜 Papel", t, "", true);
+}
+
+/* =========================================================
+   RELÓGIO
+========================================================= */
+function updateClockVisual() {
+    $("hour").style.transform = `translateX(-50%) rotate(${state.clockHour * 30}deg)`;
+}
+
+function rotateClockHand(event) {
+    playSound('click');
+
+    const rect = $("clock").getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+
+    if (clickX > rect.width / 2) {
+        state.clockHour = (state.clockHour + 1) % 12;
+    } else {
+        state.clockHour = (state.clockHour - 1 + 12) % 12;
+    }
+    updateClockVisual();
+
+    if (!state.hourClue) {
+        message("🕰️ O relógio gira, mas você não sabe que horas deveria marcar. Procure uma pista na sala.");
+        return;
+    }
+
+    const hh = state.clockHour === 0 ? 12 : state.clockHour;
+    const label = hh.toString().padStart(2, '0') + ":00";
+
+    if (hh === state.codeData.targetHour) {
+        if (!state.clock) {
+            state.clock = true;
+            playSound('unlock');
+            message(`🕰️ Hora certa: ${label}! Lembre-se: o código usa só o último algarismo da hora.`);
+            save();
+        } else {
+            message(`🕰️ O relógio está parado às ${label}.`);
+        }
+    } else {
+        message(`🕰️ Você ajustou o relógio para ${label}.`);
+    }
+}
+
+/* =========================================================
+   CHAVE DE FENDA NO QUADRO
+========================================================= */
+function useScrewdriverOnPainting() {
+    if (!state.screwdriver) { message("Você não possui uma chave de fenda."); return; }
+
+    if (state.compartment) {
+        message("O compartimento já está aberto.");
+        selectedItem = null;
+        updateInventory();
+        return;
+    }
+
+    state.compartment = true;
+    $("paintingCompartment").classList.add("open");
+    selectedItem = null;
+    $("fuse").style.display = "block";
+
+    playSound('unlock');
+    updateInventory();
+    save();
+    message("🔧 Você abriu a moldura! Há um fusível escondido.");
+}
+
+/* =========================================================
+   FUSÍVEL E PAINEL
+========================================================= */
+function takeFuse() {
+    if (state.fuse) { message("Você já possui o fusível."); return; }
+
+    state.fuse = true;
+    $("fuse").style.display = "none";
+    playSound('unlock');
+    updateInventory();
+    save();
+    message("🔌 Fusível adicionado ao inventário.");
+}
+
+function usePanel() {
+    if (state.panel) { message("O painel está funcionando."); return; }
+    if (selectedItem === "fuse") { activatePanel(); return; }
+
+    playSound('click');
+    if (!state.fuse) message("O painel precisa de um fusível.");
+    else message("🔌 Selecione o fusível no inventário e clique no painel.");
+}
+
+function activatePanel() {
+    if (!state.fuse) { message("Você não possui um fusível."); return; }
+
+    state.fuse = false;
+    state.panel = true;
+    state.lock2 = true;
+    selectedItem = null;
+
+    $("panel").classList.add("on");
+    $("lock2").classList.add("open");
+
+    playSound('power');
+    powerAmbient();
+    const g = $("game");
+    g.classList.add("flicker");
+    setTimeout(() => {
+        g.classList.remove("flicker");
+        g.classList.add("power-on");
+    }, 700);
+
+    updateInventory();
+    save();
+    message("⚡ Energia restabelecida! A luz acendeu e a segunda trava abriu.");
+}
+
+/* =========================================================
+   COFRE E CHAVE
+========================================================= */
+function openSafe() {
+    if (state.safe) { message("O cofre já foi aberto."); return; }
+
+    modal(
+        "🔐 Cofre",
+        "Digite o código de quatro números.",
+        `<input id="code" maxlength="4" inputmode="numeric" placeholder="0000">
+         <br><br>
+         <button onclick="checkSafe()">ABRIR COFRE</button>`
+    );
+    setTimeout(() => { if ($("code")) $("code").focus(); }, 100);
+}
+
+function checkSafe() {
+    const code = $("code").value;
+
+    if (code !== state.codeData.fullCode) {
+        playSound('error');
+        message("❌ O código está incorreto.");
+        return;
+    }
+
+    state.safe = true;
+    $("key").style.display = "block";
+    playSound('unlock');
+    closeModal();
+    save();
+    message("🔓 Cofre aberto! Há uma chave dentro.");
+}
+
+function takeKey() {
+    if (!state.safe) { message("O cofre ainda está fechado."); return; }
+    if (state.key) { message("Você já pegou a chave."); return; }
+
+    state.key = true;
+    $("key").style.display = "none";
+    playSound('unlock');
+    updateInventory();
+    save();
+    message("🔑 Chave adicionada ao inventário!");
+}
+
+/* =========================================================
+   INVENTÁRIO
+========================================================= */
+const ITEM_NAMES = {
+    screwdriver: "🪛 Chave de fenda",
+    fuse: "🔌 Fusível",
+    key: "🔑 Chave",
+    medal: "🏅 Medalhão"
+};
+
+function updateInventory() {
+    const inv = $("inventory");
+    inv.innerHTML = "";
+    const items = [];
+
+    if (state.screwdriver) items.push("screwdriver");
+    if (state.fuse) items.push("fuse");
+    if (state.key) items.push("key");
+    if (state.medal) items.push("medal");
+
+    if (items.length === 0) {
+        inv.innerHTML = `<span style="font-size:11px;color:#777;">Nenhum item</span>`;
+        $("selectedInfo").innerText = "Nenhum item selecionado.";
+        return;
+    }
+
+    items.forEach(id => {
+        const el = document.createElement("div");
+        el.className = "item" + (selectedItem === id ? " selected" : "");
+        el.innerText = ITEM_NAMES[id];
+        el.onclick = () => selectItem(id);
+        inv.appendChild(el);
+    });
+
+    $("selectedInfo").innerText = selectedItem
+        ? `${ITEM_NAMES[selectedItem]} selecionado.`
+        : "Nenhum item selecionado.";
+}
+
+function selectItem(item) {
+    playSound('click');
+    if (selectedItem === item) {
+        selectedItem = null;
+        message("Item desmarcado.");
+    } else {
+        selectedItem = item;
+        message(`${ITEM_NAMES[item]} selecionado.`);
+    }
+    updateInventory();
+}
+
+/* =========================================================
+   PORTA
+========================================================= */
+function tryDoor() {
+    if (selectedItem === "key" && !state.lock1) {
+        state.lock1 = true;
+        $("lock1").classList.add("open");
+        selectedItem = null;
+        playSound('unlock');
+        updateInventory();
+        save();
+        message("🔑 Você usou a chave. A primeira trava foi aberta!");
+        return;
+    }
+
+    if (selectedItem === "medal" && !state.lock3) {
+        state.lock3 = true;
+        $("lock3").classList.add("open");
+        selectedItem = null;
+        playSound('unlock');
+        updateInventory();
+        save();
+        message("🏅 O medalhão encaixa perfeitamente. A terceira trava foi aberta!");
+        return;
+    }
+
+    if (state.lock1 && state.lock2 && state.lock3) { win(); return; }
+
+    playSound('click');
+    if (!state.lock1) message("🔒 A primeira trava precisa da chave.");
+    else if (!state.lock2) message("🔒 A segunda trava precisa de energia.");
+    else message("🔒 A terceira trava tem um encaixe redondo. Os livros guardam um segredo.");
+}
+
+/* =========================================================
+   DICAS INTELIGENTES
+========================================================= */
+function giveHint() {
+    const penalty = DIFF[state.difficulty].penalty;
+    if (penalty === null) { playSound('error'); message("🚫 Dicas desativadas no modo difícil."); return; }
+
+    playSound('click');
+    state.hints++;
+
+    let hint;
+    if (!state.painting)                  hint = "Comece investigando o quadro.";
+    else if (!state.screwdriver)          hint = "A gaveta pode ter uma ferramenta.";
+    else if (!state.compartment)          hint = "Selecione a chave de fenda no inventário e clique no quadro.";
+    else if (!state.fuse && !state.panel) hint = "Pegue o fusível que apareceu atrás do quadro.";
+    else if (!state.panel)                hint = "Selecione o fusível no inventário e clique no painel.";
+    else if (!state.hourClue)             hint = "Algo está riscado na janela.";
+    else if (!state.paper)                hint = "Há um papel sobre a mesa com uma sequência incompleta.";
+    else if (!state.clock)                hint = "Gire o relógio (clique à esquerda ou à direita dele) até a hora da janela.";
+    else if (!state.safe)                 hint = "Código do cofre: os 3 números do papel + o último algarismo da hora.";
+    else if (!state.key)                  hint = "Pegue a chave que está dentro do cofre.";
+    else if (!state.lock1)                hint = "Selecione a chave no inventário e clique na porta.";
+    else if (!state.bookSolved)           hint = "O diário diz em que ordem ler os livros. Clique neles em sequência.";
+    else if (!state.medal)                hint = "Pegue o medalhão que apareceu na estante.";
+    else if (!state.lock3)                hint = "Selecione o medalhão e clique na porta.";
+    else                                  hint = "Clique na porta para sair.";
+
+    if (penalty > 0) { state.time = Math.max(1, state.time - penalty); updateTimerDisplay(); }
+    message(`💡 ${hint}${penalty ? ` (−${penalty} s)` : ""}`);
+    save();
+}
+
+/* =========================================================
+   SALVAR E CARREGAR
+========================================================= */
+function save() {
+    if (finished) return;
+    state.lastSave = Date.now();
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+}
+
+function newGameState() {
+    state = { ...DEFAULT_STATE };
+    state.codeData = generateRandomCode();
+    state.bookOrder = shuffle([1, 2, 3, 4]);
+    state.notes = [];
+    save();
+}
+
+function load() {
+    const saved = localStorage.getItem(SAVE_KEY);
+    if (!saved) { newGameState(); return; }
+
+    try {
+        state = { ...DEFAULT_STATE, ...JSON.parse(saved) };
+        if (!state.codeData) state.codeData = generateRandomCode();
+        if (!state.bookOrder) state.bookOrder = shuffle([1, 2, 3, 4]);
+        state.notes = [...(state.notes || [])];
+        if (!DIFF[state.difficulty]) state.difficulty = "normal";
+
+        // O tempo fica pausado enquanto o jogo está fechado.
+        if (state.painting) $("painting").style.borderColor = "#00e5ff";
+        if (state.compartment) $("paintingCompartment").classList.add("open");
+        if (state.compartment && !state.fuse && !state.panel) $("fuse").style.display = "block";
+        if (state.panel) {
+            $("panel").classList.add("on");
+            $("lock2").classList.add("open");
+            $("game").classList.add("power-on");
+        }
+        if (state.safe && !state.key && !state.lock1) $("key").style.display = "block";
+        if (state.lock1) $("lock1").classList.add("open");
+        if (state.lock3) $("lock3").classList.add("open");
+        if (state.bookSolved && !state.medal) $("medal").style.display = "block";
+
+        updateClockVisual();
+        updateInventory();
+    } catch (e) {
+        newGameState();
+    }
+}
+
+/* =========================================================
+   TEMPORIZADOR E FLUXO
+========================================================= */
+function startTimer() {
+    clearInterval(timer);
+    timer = setInterval(() => {
+        state.time--;
+        updateTimerDisplay();
+        if (state.time % 5 === 0) save();
+        if (state.time <= 0) {
+            clearInterval(timer);
+            gameOver();
+        }
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const m = Math.floor(state.time / 60).toString().padStart(2, '0');
+    const s = (state.time % 60).toString().padStart(2, '0');
+    $("timer").innerText = `⏱️ ${m}:${s}`;
+}
+
+function startGame() {
+    initAudio();
+    playSound('click');
+    $("start").style.display = "none";
+    state.started = true;
+    save();
+    startTimer();
+    startAmbient();
+}
+
+function finish() {
+    finished = true;
+    clearInterval(timer);
+    stopAmbient();
+    localStorage.removeItem(SAVE_KEY);
+}
+
+function win() {
+    finish();
+    playSound('unlock');
+
+    const cfg = DIFF[state.difficulty];
+    const used = cfg.time - state.time;
+    const frac = state.time / cfg.time;
+    const stars = (state.hints === 0 && frac >= 0.4) ? 3 : (state.hints <= 2 || frac >= 0.2) ? 2 : 1;
+
+    let best = {};
+    try { best = JSON.parse(localStorage.getItem("escapeMansionBest")) || {}; } catch (e) {}
+    const isBest = best[state.difficulty] === undefined || used < best[state.difficulty];
+    if (isBest) {
+        best[state.difficulty] = used;
+        try { localStorage.setItem("escapeMansionBest", JSON.stringify(best)); } catch (e) {}
+    }
+
+    const fmt = t => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+    $("scoreText").innerHTML =
+        `${"⭐".repeat(stars)}${"☆".repeat(3 - stars)}<br>` +
+        `Modo ${cfg.label} · Tempo: ${fmt(used)} · Dicas: ${state.hints}<br>` +
+        (isBest ? "🏆 Novo recorde!" : "Melhor tempo: " + fmt(best[state.difficulty]));
+
+    $("door").classList.add("opening");
+    setTimeout(() => { $("win").style.display = "flex"; }, 1300);
+}
+
+function gameOver() {
+    finish();
+    playSound('error');
+    $("gameOver").style.display = "flex";
+}
+
+function resetGame() {
+    localStorage.removeItem(SAVE_KEY);
+    window.removeEventListener("beforeunload", save);
+    location.reload();
+}
+
+/* =========================================================
+   INICIALIZAÇÃO
+========================================================= */
+window.onload = function () {
+    const hadSave = !!localStorage.getItem(SAVE_KEY);
+    load();
+    renderPuzzlesFromCode();
+    updateTimerDisplay();
+    updateInventory();
+    continuing = state.started;
+    if (continuing) {
+        $("startButton").innerText = "CONTINUAR";
+        $("diffRow").style.display = "none";
+    }
+    markDifficulty();
+    updateHintLabel();
+    $("muteBtn").innerText = muted ? "🔇" : "🔊";
+
+    // Lanterna: a luz segue o mouse/dedo até a energia voltar
+    const moveLight = (x, y) => {
+        $("game").style.setProperty('--mx', x + 'px');
+        $("game").style.setProperty('--my', y + 'px');
+    };
+    $("game").addEventListener("mousemove", e => moveLight(e.clientX, e.clientY));
+    $("game").addEventListener("touchmove", e => moveLight(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+    $("game").addEventListener("touchstart", e => moveLight(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+
+    window.addEventListener("beforeunload", save);
+
+    // ESC fecha o modal; Enter confirma o cofre; clicar fora fecha
+    document.addEventListener("keydown", e => {
+        const open = $("modal").style.display === "flex";
+        if (e.key === "Escape" && open) closeModal();
+        if (e.key === "Enter" && open && $("code")) checkSafe();
+    });
+    $("modal").addEventListener("click", e => {
+        if (e.target === $("modal")) closeModal();
+    });
+};
+</script>
+</body>
+</html>

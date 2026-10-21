@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duelo de Bruxos - Harry Potter Fighting Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #030206;
+            color: #f1f5f9;
+            user-select: none;
+            overflow: hidden;
+        }
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .glow-gold { text-shadow: 0 0 10px rgba(234, 179, 8, 0.8), 0 0 20px rgba(234, 179, 8, 0.4); }
+        .glow-red { text-shadow: 0 0 10px rgba(239, 68, 68, 0.8); }
+        .glow-green { text-shadow: 0 0 10px rgba(34, 197, 94, 0.8); }
+        .glow-blue { text-shadow: 0 0 10px rgba(56, 189, 248, 0.8); }
+        
+        .char-card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .char-card:hover {
+            transform: translateY(-4px) scale(1.02);
+        }
+        .char-card.selected-p1 {
+            border-color: #f59e0b !important;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+        }
+        .char-card.selected-p2 {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+        }
+        .glass-panel {
+            background: rgba(10, 9, 18, 0.93);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        ::-webkit-scrollbar-thumb { background: rgba(217, 119, 6, 0.5); border-radius: 3px; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-slate-950 p-1 sm:p-3">
+
+    <!-- MAIN GAME CONTAINER -->
+    <div id="game-container" class="relative w-full max-w-[1280px] aspect-[16/9] flex flex-col justify-center items-center overflow-hidden rounded-2xl border border-amber-900/40 bg-black shadow-[0_0_60px_rgba(0,0,0,0.95)]">
+        
+        <!-- GAME CANVAS -->
+        <canvas id="gameCanvas" class="w-full h-full absolute inset-0 z-0"></canvas>
+
+        <!-- SELECTION MENU OVERLAY -->
+        <div id="select-screen" class="absolute inset-0 z-20 glass-panel flex flex-col justify-between p-4 sm:p-5 overflow-y-auto">
+            
+            <!-- HEADER -->
+            <div class="text-center">
+                <h1 class="text-3xl sm:text-5xl font-black font-cinzel tracking-widest text-amber-400 glow-gold uppercase">Duelo de Bruxos</h1>
+                <p class="text-xs sm:text-sm text-slate-300 mt-1">Selecione os Bruxos, a Arena e prepare-se para o combate!</p>
+            </div>
+
+            <!-- CHARACTER SELECTION GRID (9 CHARACTERS) -->
+            <div id="char-grid" class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2 my-auto py-2">
+                <!-- Cards injected dynamically via JS -->
+            </div>
+
+            <!-- ARENA SELECTION & CONTROLS DISPLAY -->
+            <div class="flex flex-col md:flex-row items-center justify-between gap-3 border-t border-slate-800/90 pt-3">
+                
+                <!-- Arena Selector -->
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-amber-400 font-cinzel">Arena:</span>
+                    <select id="arena-select" onchange="selectedArena = this.value" class="bg-slate-900 border border-amber-600/50 text-slate-200 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-400">
+                        <option value="greatHall">Salão Principal de Hogwarts</option>
+                        <option value="ministry">Átrio do Ministério da Magia</option>
+                        <option value="forest">Floresta Proibida</option>
+                        <option value="graveyard">Cemitério de Little Hangleton</option>
+                        <option value="mysteries">Departamento de Mistérios</option>
+                    </select>
+                </div>
+
+                <!-- Controls Display Panel -->
+                <div class="flex gap-4 sm:gap-8 text-[11px] text-slate-300 bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+                    <div>
+                        <span class="font-bold text-amber-400 font-cinzel block text-xs">JOGADOR 1 (Esquerda)</span>
+                        <span class="text-slate-400">Movimento:</span> <strong class="text-amber-200">WASD</strong> (W: Pulo, S: Esquiva/Aparatação)<br>
+                        <span class="text-slate-400">Ataque Básico:</span> <strong class="text-amber-200">J</strong> | <span class="text-slate-400">Especiais:</span> <strong class="text-amber-200">K / L</strong><br>
+                        <span class="text-slate-400">Protego (Escudo):</span> <strong class="text-amber-200">I</strong>
+                    </div>
+                    <div class="border-l border-slate-700 pl-4">
+                        <span class="font-bold text-emerald-400 font-cinzel block text-xs">JOGADOR 2 (Direita)</span>
+                        <span class="text-slate-400">Movimento:</span> <strong class="text-emerald-200">Setas</strong> (Cima: Pulo, Baixo: Esquiva/Aparatação)<br>
+                        <span class="text-slate-400">Ataque Básico:</span> <strong class="text-emerald-200">1</strong> | <span class="text-slate-400">Especiais:</span> <strong class="text-emerald-200">2 / 3</strong><br>
+                        <span class="text-slate-400">Protego (Escudo):</span> <strong class="text-emerald-200">5</strong>
+                    </div>
+                </div>
+
+                <!-- Start Match Button -->
+                <button id="start-btn" onclick="startGame()" disabled class="w-full md:w-auto px-8 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black font-cinzel rounded-lg shadow-xl transition-all text-xs sm:text-sm uppercase tracking-wider">
+                    Iniciar Duelo
+                </button>
+            </div>
+        </div>
+
+        <!-- COMBAT HUD LAYER -->
+        <div id="hud-layer" class="absolute inset-0 z-10 pointer-events-none p-4 flex flex-col justify-between hidden">
+            
+            <!-- TOP STATS BAR -->
+            <div class="flex justify-between items-start gap-3 sm:gap-6">
+                
+                <!-- PLAYER 1 HUD -->
+                <div class="flex-1 max-w-[42%]">
+                    <div class="flex justify-between items-center mb-1">
+                        <div class="flex items-center gap-2">
+                            <span id="p1-name-hud" class="font-cinzel font-bold text-amber-400 text-sm sm:text-base glow-gold">Player 1</span>
+                            <div id="p1-wins" class="flex gap-1">
+                                <div class="w-2.5 h-2.5 rounded-full border border-amber-400 bg-transparent"></div>
+                                <div class="w-2.5 h-2.5 rounded-full border border-amber-400 bg-transparent"></div>
+                            </div>
+                        </div>
+                        <span id="p1-hp-text" class="text-xs font-bold text-slate-300">100 HP</span>
+                    </div>
+                    <!-- HP BAR -->
+                    <div class="w-full bg-slate-950/90 border border-amber-900/50 h-5 rounded-md p-0.5 shadow-inner">
+                        <div id="p1-hp-bar" class="h-full bg-gradient-to-r from-red-600 via-amber-500 to-yellow-400 rounded transition-all duration-150 w-full"></div>
+                    </div>
+                    <!-- MANA & ULTIMATE BARS -->
+                    <div class="grid grid-cols-2 gap-1 mt-1">
+                        <div class="w-full bg-slate-950/90 border border-slate-800 h-2 rounded p-0.5">
+                            <div id="p1-mana-bar" class="h-full bg-cyan-400 rounded transition-all duration-100 w-full"></div>
+                        </div>
+                        <div class="w-full bg-slate-950/90 border border-slate-800 h-2 rounded p-0.5">
+                            <div id="p1-ult-bar" class="h-full bg-purple-500 rounded transition-all duration-100 w-0"></div>
+                        </div>
+                    </div>
+                    <div id="p1-combo" class="text-amber-400 font-black font-cinzel text-xs mt-1 opacity-0 transition-opacity">2x COMBO!</div>
+                </div>
+
+                <!-- TIMER & ROUND -->
+                <div class="flex flex-col items-center">
+                    <div id="timer" class="font-cinzel text-xl sm:text-3xl font-black text-amber-300 bg-slate-950/90 px-3.5 py-0.5 rounded-lg border border-amber-500/40 shadow-lg">60</div>
+                    <span id="round-text" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">ROUND 1</span>
+                </div>
+
+                <!-- PLAYER 2 HUD -->
+                <div class="flex-1 max-w-[42%] text-right">
+                    <div class="flex justify-between items-center mb-1 flex-row-reverse">
+                        <div class="flex items-center gap-2 flex-row-reverse">
+                            <span id="p2-name-hud" class="font-cinzel font-bold text-emerald-400 text-sm sm:text-base glow-green">Player 2</span>
+                            <div id="p2-wins" class="flex gap-1">
+                                <div class="w-2.5 h-2.5 rounded-full border border-emerald-400 bg-transparent"></div>
+                                <div class="w-2.5 h-2.5 rounded-full border border-emerald-400 bg-transparent"></div>
+                            </div>
+                        </div>
+                        <span id="p2-hp-text" class="text-xs font-bold text-slate-300">100 HP</span>
+                    </div>
+                    <!-- HP BAR -->
+                    <div class="w-full bg-slate-950/90 border border-emerald-900/50 h-5 rounded-md p-0.5 shadow-inner flex justify-end">
+                        <div id="p2-hp-bar" class="h-full bg-gradient-to-l from-emerald-600 via-teal-400 to-cyan-300 rounded transition-all duration-150 w-full"></div>
+                    </div>
+                    <!-- MANA & ULTIMATE BARS -->
+                    <div class="grid grid-cols-2 gap-1 mt-1">
+                        <div class="w-full bg-slate-950/90 border border-slate-800 h-2 rounded p-0.5 flex justify-end">
+                            <div id="p2-mana-bar" class="h-full bg-cyan-400 rounded transition-all duration-100 w-full"></div>
+                        </div>
+                        <div class="w-full bg-slate-950/90 border border-slate-800 h-2 rounded p-0.5 flex justify-end">
+                            <div id="p2-ult-bar" class="h-full bg-purple-500 rounded transition-all duration-100 w-0"></div>
+                        </div>
+                    </div>
+                    <div id="p2-combo" class="text-emerald-400 font-black font-cinzel text-xs mt-1 opacity-0 transition-opacity">2x COMBO!</div>
+                </div>
+
+            </div>
+
+            <!-- PRIORI INCANTATEM CLASH OVERLAY -->
+            <div id="clash-overlay" class="self-center my-auto glass-panel border-2 border-amber-500 rounded-2xl p-6 text-center max-w-md hidden pointer-events-auto shadow-2xl">
+                <h2 class="font-cinzel text-2xl sm:text-3xl font-black text-amber-400 animate-pulse glow-gold">PRIORI INCANTATEM!</h2>
+                <p class="text-xs text-slate-200 my-2">Esmague a sua tecla de feitiço básico para empurrar o feitiço do oponente!</p>
+                <div class="flex justify-between items-center text-xs font-bold text-slate-300 mt-3">
+                    <span class="text-amber-400">P1: [ J ]</span>
+                    <span class="text-emerald-400">P2: [ 1 ]</span>
+                </div>
+                <div class="w-full bg-slate-950 h-5 rounded-full mt-1.5 p-0.5 border border-amber-500/50">
+                    <div id="clash-bar" class="h-full bg-gradient-to-r from-amber-500 via-white to-emerald-500 rounded-full w-1/2 transition-all duration-75"></div>
+                </div>
+            </div>
+
+            <!-- ANNOUNCER & BANNER MESSAGES -->
+            <div id="announcer-banner" class="self-center my-auto text-center hidden pointer-events-none">
+                <h2 id="announcer-text" class="font-cinzel text-4xl sm:text-6xl font-black text-amber-400 glow-gold uppercase tracking-widest animate-bounce">ROUND 1</h2>
+            </div>
+
+            <!-- WINNER / ROUND OVER OVERLAY -->
+            <div id="winner-modal" class="self-center my-auto glass-panel p-6 sm:p-8 rounded-2xl text-center max-w-md hidden pointer-events-auto border-2 border-amber-500 shadow-2xl">
+                <h2 id="winner-title" class="font-cinzel text-2xl sm:text-4xl font-black text-amber-400 glow-gold">VENCEDOR!</h2>
+                <p id="winner-subtitle" class="text-slate-300 text-xs sm:text-sm mt-2 mb-6">Demonstrou maestria suprema em feitiçaria.</p>
+                <div class="flex justify-center gap-3">
+                    <button onclick="nextRound()" id="next-round-btn" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black font-cinzel rounded-lg shadow-lg transition-all text-xs uppercase">
+                        Próximo Round
+                    </button>
+                    <button onclick="backToCharSelect()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold font-cinzel rounded-lg shadow-lg transition-all text-xs uppercase border border-slate-600">
+                        Menu Principal
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- AUDIO ENGINE & GAME LOGIC -->
+    <script>
+        class AudioEngine {
+            constructor() {
+                this.ctx = null;
+            }
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+            playWandZap(freq = 700) {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.15);
+            }
+            playExplosion() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(140, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(20, this.ctx.currentTime + 0.4);
+                gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.4);
+            }
+            playReflectSound() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(350, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(1000, this.ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.2);
+            }
+            playClashSound() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(180 + Math.random() * 300, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+        }
+        const audio = new AudioEngine();
+
+        /* ROSTER DEFINITIONS FOR 9 WIZARDS */
+        const CHARACTERS = {
+            harry: {
+                name: 'Harry Potter',
+                emoji: '⚡',
+                house: 'Grifinória',
+                color: '#ef4444',
+                robeColor: '#1e1b4b',
+                hairColor: '#0f172a',
+                skinColor: '#fde047',
+                maxHp: 100,
+                speed: 6.5,
+                spells: {
+                    basic: { name: 'Stupefy', damage: 7, manaCost: 0, speed: 13, color: '#fef08a', radius: 6 },
+                    spell1: { name: 'Expelliarmus', damage: 15, manaCost: 25, speed: 15, color: '#ef4444', radius: 9, stun: 30 },
+                    spell2: { name: 'Expecto Patronum', damage: 38, manaCost: 65, speed: 9, color: '#38bdf8', radius: 24, patronus: true }
+                }
+            },
+            voldemort: {
+                name: 'Voldemort',
+                emoji: '🐍',
+                house: 'Sonserina',
+                color: '#10b981',
+                robeColor: '#022c22',
+                hairColor: '#f8fafc',
+                skinColor: '#e2e8f0',
+                maxHp: 90,
+                speed: 6.0,
+                spells: {
+                    basic: { name: 'Feitiço Sombrio', damage: 8, manaCost: 0, speed: 12, color: '#a7f3d0', radius: 6 },
+                    spell1: { name: 'Ataque Nagini', damage: 18, manaCost: 30, speed: 12, color: '#10b981', radius: 10, snake: true },
+                    spell2: { name: 'Avada Kedavra', damage: 50, manaCost: 85, speed: 8.5, color: '#22c55e', radius: 18 }
+                }
+            },
+            dumbledore: {
+                name: 'Dumbledore',
+                emoji: '🧙‍♂️',
+                house: 'Diretor',
+                color: '#f59e0b',
+                robeColor: '#312e81',
+                hairColor: '#e2e8f0',
+                skinColor: '#fde047',
+                maxHp: 110,
+                speed: 5.5,
+                spells: {
+                    basic: { name: 'Chicote de Fogo', damage: 8, manaCost: 0, speed: 12, color: '#fde047', radius: 7 },
+                    spell1: { name: 'Onda de Força', damage: 16, manaCost: 30, speed: 13, color: '#38bdf8', radius: 12, push: 10 },
+                    spell2: { name: 'Dragão de Fogo', damage: 42, manaCost: 75, speed: 10, color: '#f97316', radius: 26 }
+                }
+            },
+            hermione: {
+                name: 'Hermione',
+                emoji: '📚',
+                house: 'Grifinória',
+                color: '#3b82f6',
+                robeColor: '#1e1b4b',
+                hairColor: '#78350f',
+                skinColor: '#fde047',
+                maxHp: 95,
+                speed: 6.2,
+                spells: {
+                    basic: { name: 'Incendio', damage: 7, manaCost: 0, speed: 13, color: '#f97316', radius: 6 },
+                    spell1: { name: 'Petrificus Totalus', damage: 12, manaCost: 35, speed: 16, color: '#60a5fa', radius: 8, freeze: 45 },
+                    spell2: { name: 'Bombarda Maxima', damage: 36, manaCost: 60, speed: 10, color: '#eab308', radius: 22, explosion: true }
+                }
+            },
+            snape: {
+                name: 'Snape',
+                emoji: '🧪',
+                house: 'Sonserina',
+                color: '#a855f7',
+                robeColor: '#090514',
+                hairColor: '#020617',
+                skinColor: '#e2e8f0',
+                maxHp: 105,
+                speed: 5.6,
+                spells: {
+                    basic: { name: 'Lâmina das Sombras', damage: 7, manaCost: 0, speed: 13, color: '#c084fc', radius: 6 },
+                    spell1: { name: 'Sectumsempra', damage: 24, manaCost: 30, speed: 16, color: '#e879f9', radius: 8, bleeding: true },
+                    spell2: { name: 'Legilimens Teleport', damage: 14, manaCost: 45, speed: 20, color: '#818cf8', radius: 8, teleport: true }
+                }
+            },
+            bellatrix: {
+                name: 'Bellatrix',
+                emoji: '🗡️',
+                house: 'Comensal',
+                color: '#f43f5e',
+                robeColor: '#18181b',
+                hairColor: '#09090b',
+                skinColor: '#e2e8f0',
+                maxHp: 90,
+                speed: 6.7,
+                spells: {
+                    basic: { name: 'Reducto', damage: 8, manaCost: 0, speed: 14, color: '#fb7185', radius: 6 },
+                    spell1: { name: 'Cruciatus Rápido', damage: 20, manaCost: 35, speed: 14, color: '#e11d48', radius: 9, curve: true },
+                    spell2: { name: 'Nuvem de Fogo', damage: 34, manaCost: 60, speed: 11, color: '#f43f5e', radius: 20 }
+                }
+            },
+            sirius: {
+                name: 'Sirius Black',
+                emoji: '🐺',
+                house: 'Grifinória',
+                color: '#64748b',
+                robeColor: '#1e293b',
+                hairColor: '#334155',
+                skinColor: '#fde047',
+                maxHp: 100,
+                speed: 6.8,
+                spells: {
+                    basic: { name: 'Feitiço de Impacto', damage: 7, manaCost: 0, speed: 13, color: '#94a3b8', radius: 6 },
+                    spell1: { name: 'Reducto Pesado', damage: 18, manaCost: 30, speed: 14, color: '#cbd5e1', radius: 10 },
+                    spell2: { name: 'Animagus Dash', damage: 32, manaCost: 55, speed: 18, color: '#475569', radius: 18, animagus: true }
+                }
+            },
+            draco: {
+                name: 'Draco Malfoy',
+                emoji: '🐍',
+                house: 'Sonserina',
+                color: '#a3e635',
+                robeColor: '#14532d',
+                hairColor: '#fef08a',
+                skinColor: '#fde047',
+                maxHp: 95,
+                speed: 6.3,
+                spells: {
+                    basic: { name: 'Disparo de Cobras', damage: 7, manaCost: 0, speed: 13, color: '#bef264', radius: 6 },
+                    spell1: { name: 'Serpensortia', damage: 16, manaCost: 30, speed: 12, color: '#84cc16', radius: 9, snake: true },
+                    spell2: { name: 'Marca Negra', damage: 35, manaCost: 65, speed: 10, color: '#4d7c0f', radius: 22 }
+                }
+            },
+            mcgonagall: {
+                name: 'Minerva',
+                emoji: '🦁',
+                house: 'Grifinória',
+                color: '#ec4899',
+                robeColor: '#831843',
+                hairColor: '#94a3b8',
+                skinColor: '#fde047',
+                maxHp: 105,
+                speed: 5.8,
+                spells: {
+                    basic: { name: 'Vera Verto', damage: 8, manaCost: 0, speed: 13, color: '#f472b6', radius: 6 },
+                    spell1: { name: 'Transfiguração', damage: 15, manaCost: 30, speed: 15, color: '#f43f5e', radius: 8, stun: 20 },
+                    spell2: { name: 'Piertotum Locomotor', damage: 40, manaCost: 70, speed: 8.5, color: '#db2777', radius: 25, statue: true }
+                }
+            }
+        };
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let selectedP1 = null;
+        let selectedP2 = null;
+        let selectedArena = 'greatHall';
+
+        let gameActive = false;
+        let gameTimer = 60;
+        let timerInterval = null;
+
+        let p1Wins = 0;
+        let p2Wins = 0;
+        let currentRound = 1;
+
+        const keys = {};
+
+        // Priori Incantatem Clash State
+        let inClash = false;
+        let clashProgress = 50;
+
+        // Entities
+        let player1 = null;
+        let player2 = null;
+        let projectiles = [];
+        let particles = [];
+        let backgroundElements = [];
+
+        function resizeCanvas() {
+            const container = document.getElementById('game-container');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function buildCharSelectionGrid() {
+            const grid = document.getElementById('char-grid');
+            grid.innerHTML = '';
+
+            Object.keys(CHARACTERS).forEach(key => {
+                const char = CHARACTERS[key];
+                const card = document.createElement('div');
+                card.id = `card-${key}`;
+                card.onclick = () => selectCharacter(key);
+                card.className = "char-card bg-slate-900/90 border-2 border-slate-700 hover:border-amber-500 rounded-xl p-2 cursor-pointer flex flex-col items-center text-center relative group";
+                
+                card.innerHTML = `
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-slate-800 border-2 border-amber-500/40 flex items-center justify-center text-xl sm:text-2xl shadow-lg mb-1">
+                        ${char.emoji}
+                    </div>
+                    <h3 class="font-cinzel text-xs font-bold text-amber-300 leading-tight">${char.name}</h3>
+                    <span class="text-[9px] text-slate-400 mt-0.5">${char.house}</span>
+                    <div id="badge-${key}" class="absolute top-1 right-1 text-[9px] font-bold px-1 rounded hidden"></div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+        buildCharSelectionGrid();
+
+        function selectCharacter(charKey) {
+            audio.init();
+            if (!selectedP1) {
+                selectedP1 = charKey;
+            } else if (!selectedP2) {
+                selectedP2 = charKey;
+            } else {
+                selectedP1 = charKey;
+                selectedP2 = null;
+            }
+            updateCharCards();
+        }
+
+        function updateCharCards() {
+            Object.keys(CHARACTERS).forEach(key => {
+                const card = document.getElementById(`card-${key}`);
+                const badge = document.getElementById(`badge-${key}`);
+                
+                card.classList.remove('selected-p1', 'selected-p2');
+                badge.classList.add('hidden');
+
+                if (selectedP1 === key && selectedP2 === key) {
+                    card.classList.add('selected-p1');
+                    badge.classList.remove('hidden');
+                    badge.className = "absolute top-1 right-1 text-[9px] font-bold px-1 rounded bg-gradient-to-r from-amber-500 to-emerald-500 text-slate-950";
+                    badge.innerText = "P1/P2";
+                } else if (selectedP1 === key) {
+                    card.classList.add('selected-p1');
+                    badge.classList.remove('hidden');
+                    badge.className = "absolute top-1 right-1 text-[9px] font-bold px-1 rounded bg-amber-500 text-slate-950";
+                    badge.innerText = "P1";
+                } else if (selectedP2 === key) {
+                    card.classList.add('selected-p2');
+                    badge.classList.remove('hidden');
+                    badge.className = "absolute top-1 right-1 text-[9px] font-bold px-1 rounded bg-emerald-500 text-slate-950";
+                    badge.innerText = "P2";
+                }
+            });
+
+            document.getElementById('start-btn').disabled = !(selectedP1 && selectedP2);
+        }
+
+        /* WIZARD CLASS WITH DETAILED CANVAS VECTOR GRAPHICS */
+        class Wizard {
+            constructor(x, y, charKey, isP1) {
+                this.x = x;
+                this.y = y;
+                this.width = 48;
+                this.height = 92;
+                this.charData = CHARACTERS[charKey];
+                this.isP1 = isP1;
+
+                this.vx = 0;
+                this.vy = 0;
+                this.isGrounded = false;
+
+                this.hp = this.charData.maxHp;
+                this.maxHp = this.charData.maxHp;
+                this.mana = 100;
+                this.maxMana = 100;
+                this.ultimate = 0;
+                this.maxUltimate = 100;
+
+                this.facing = isP1 ? 1 : -1;
+                this.isShielding = false;
+                this.perfectShieldWindow = 0;
+                
+                this.isRolling = false;
+                this.rollTimer = 0;
+
+                this.stunTimer = 0;
+                this.freezeTimer = 0;
+
+                this.cooldowns = { basic: 0, spell1: 0, spell2: 0 };
+                this.animTimer = 0;
+                this.comboCount = 0;
+                this.comboTimer = 0;
+            }
+
+            update() {
+                this.animTimer += 0.15;
+
+                if (this.comboTimer > 0) {
+                    this.comboTimer--;
+                    if (this.comboTimer <= 0) this.comboCount = 0;
+                }
+
+                if (this.stunTimer > 0) { this.stunTimer--; return; }
+                if (this.freezeTimer > 0) { this.freezeTimer--; return; }
+
+                if (this.perfectShieldWindow > 0) this.perfectShieldWindow--;
+
+                if (this.mana < this.maxMana) this.mana += 0.38;
+
+                if (this.isRolling) {
+                    this.rollTimer--;
+                    this.vx = this.facing * 10;
+                    
+                    // Smoke puff trail for wizard apparation
+                    particles.push({
+                        x: this.x + this.width / 2 + (Math.random() - 0.5) * 20,
+                        y: this.y + this.height / 2 + (Math.random() - 0.5) * 30,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (Math.random() - 0.5) * 2,
+                        color: '#64748b',
+                        life: 16
+                    });
+
+                    if (this.rollTimer <= 0) {
+                        this.isRolling = false;
+                    }
+                }
+
+                this.vy += 0.68;
+                this.x += this.vx;
+                this.y += this.vy;
+
+                const groundY = canvas.height - 110 - this.height;
+                if (this.y >= groundY) {
+                    this.y = groundY;
+                    this.vy = 0;
+                    this.isGrounded = true;
+                }
+
+                if (this.x < 25) this.x = 25;
+                if (this.x > canvas.width - 25 - this.width) this.x = canvas.width - 25 - this.width;
+
+                if (this.cooldowns.basic > 0) this.cooldowns.basic--;
+                if (this.cooldowns.spell1 > 0) this.cooldowns.spell1--;
+                if (this.cooldowns.spell2 > 0) this.cooldowns.spell2--;
+
+                const opponent = this.isP1 ? player2 : player1;
+                if (opponent && !inClash && !this.isRolling) {
+                    this.facing = opponent.x > this.x ? 1 : -1;
+                }
+            }
+
+            draw() {
+                ctx.save();
+
+                // Ground Shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.beginPath();
+                ctx.ellipse(this.x + this.width / 2, canvas.height - 108, 28, 8, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (this.freezeTimer > 0) {
+                    ctx.fillStyle = 'rgba(147, 197, 253, 0.7)';
+                    ctx.fillRect(this.x - 8, this.y - 8, this.width + 16, this.height + 16);
+                }
+
+                const breathOffset = Math.sin(this.animTimer) * 2.5;
+                const bodyX = this.x + this.width / 2;
+
+                // Flowing Robe (Vector Drawing)
+                ctx.fillStyle = this.charData.robeColor;
+                ctx.beginPath();
+                ctx.moveTo(bodyX, this.y + breathOffset);
+                ctx.lineTo(this.x + this.width + (this.isRolling ? 18 : 10), this.y + this.height);
+                ctx.lineTo(this.x - (this.isRolling ? 18 : 10), this.y + this.height);
+                ctx.closePath();
+                ctx.fill();
+
+                // Inner Tunic / Scarf Accent
+                ctx.fillStyle = this.charData.color;
+                ctx.fillRect(bodyX - 5, this.y + 22, 10, this.height - 24);
+
+                // Head / Skin
+                ctx.fillStyle = this.charData.skinColor;
+                ctx.beginPath();
+                ctx.arc(bodyX, this.y + 16 + breathOffset, 12, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Styled Hair
+                ctx.fillStyle = this.charData.hairColor;
+                ctx.beginPath();
+                ctx.arc(bodyX, this.y + 11 + breathOffset, 13.5, Math.PI, Math.PI * 2);
+                ctx.fill();
+
+                // Detailed Wand & Arm
+                ctx.strokeStyle = '#78350f';
+                ctx.lineWidth = 4.5;
+                ctx.beginPath();
+                const wandX = bodyX + (this.facing * 22);
+                const wandY = this.y + 28 + breathOffset;
+                ctx.moveTo(bodyX, this.y + 28 + breathOffset);
+                ctx.lineTo(wandX + (this.facing * 20), wandY - 8);
+                ctx.stroke();
+
+                // Glowing Wand Tip
+                ctx.fillStyle = this.charData.color;
+                ctx.shadowColor = this.charData.color;
+                ctx.shadowBlur = 14;
+                ctx.beginPath();
+                ctx.arc(wandX + (this.facing * 20), wandY - 8, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Protego Shield Effect
+                if (this.isShielding) {
+                    ctx.strokeStyle = this.perfectShieldWindow > 0 ? '#fef08a' : '#38bdf8';
+                    ctx.fillStyle = this.perfectShieldWindow > 0 ? 'rgba(254, 240, 138, 0.35)' : 'rgba(56, 189, 248, 0.22)';
+                    ctx.lineWidth = this.perfectShieldWindow > 0 ? 6 : 3.5;
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = '#38bdf8';
+                    ctx.beginPath();
+                    ctx.arc(bodyX, this.y + this.height / 2, 60, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+
+            castSpell(type) {
+                if (this.stunTimer > 0 || this.freezeTimer > 0 || this.isShielding || this.isRolling) return;
+
+                const spellInfo = this.charData.spells[type];
+                if (!spellInfo) return;
+
+                if (this.mana < spellInfo.manaCost) return;
+                if (this.cooldowns[type] > 0) return;
+
+                this.mana -= spellInfo.manaCost;
+                this.cooldowns[type] = type === 'basic' ? 14 : (type === 'spell1' ? 80 : 160);
+
+                audio.playWandZap(this.isP1 ? 750 : 600);
+
+                if (spellInfo.teleport) {
+                    const opponent = this.isP1 ? player2 : player1;
+                    createParticles(this.x + 20, this.y + 40, this.charData.color, 30);
+                    this.x = opponent.x - (this.facing * 75);
+                    createParticles(this.x + 20, this.y + 40, this.charData.color, 30);
+                    return;
+                }
+
+                const spawnX = this.x + this.width / 2 + (this.facing * 32);
+                const spawnY = this.y + 24;
+
+                projectiles.push(new Projectile(spawnX, spawnY, this.facing, spellInfo, this));
+            }
+
+            startRoll() {
+                if (!this.isGrounded || this.isRolling || this.stunTimer > 0) return;
+                this.isRolling = true;
+                this.rollTimer = 18;
+            }
+
+            startShield() {
+                if (!this.isShielding && !this.isRolling) {
+                    this.isShielding = true;
+                    this.perfectShieldWindow = 12;
+                }
+            }
+        }
+
+        /* PROJECTILE CLASS FOR SPELLS AND SPECIAL EFFECTS */
+        class Projectile {
+            constructor(x, y, dir, data, owner) {
+                this.x = x;
+                this.y = y;
+                this.dir = dir;
+                this.data = data;
+                this.owner = owner;
+                this.radius = data.radius;
+                this.speed = data.speed * dir;
+                this.active = true;
+                this.reflected = false;
+                this.time = 0;
+            }
+
+            update() {
+                this.time += 0.2;
+                
+                if (this.data.curve) {
+                    this.y += Math.sin(this.time * 2.5) * 4.5;
+                }
+
+                this.x += this.speed;
+
+                if (Math.random() > 0.15) {
+                    particles.push({
+                        x: this.x,
+                        y: this.y + (Math.random() * 10 - 5),
+                        vx: -this.dir * Math.random() * 2.5,
+                        vy: (Math.random() - 0.5) * 2.5,
+                        color: this.data.color,
+                        life: 16
+                    });
+                }
+
+                if (this.x < 0 || this.x > canvas.width) {
+                    this.active = false;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.fillStyle = this.data.color;
+                ctx.shadowColor = this.data.color;
+                ctx.shadowBlur = 20;
+
+                if (this.data.patronus) {
+                    ctx.fillStyle = '#e0f2fe';
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#38bdf8';
+                    ctx.lineWidth = 5;
+                    ctx.stroke();
+                } else if (this.data.snake) {
+                    ctx.fillStyle = '#10b981';
+                    ctx.beginPath();
+                    ctx.ellipse(this.x, this.y, this.radius * 1.5, this.radius * 0.7, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        function createParticles(x, y, color, count = 20) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 11,
+                    vy: (Math.random() - 0.5) * 11,
+                    color: color,
+                    life: 22 + Math.random() * 20
+                });
+            }
+        }
+
+        /* 5 DETAILED ARENAS RENDERING ROUTINES */
+        function drawArenaBackground() {
+            if (selectedArena === 'greatHall') {
+                const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                grad.addColorStop(0, '#0a0814');
+                grad.addColorStop(0.7, '#18122c');
+                grad.addColorStop(1, '#080610');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.strokeStyle = 'rgba(217, 119, 6, 0.2)';
+                ctx.lineWidth = 4;
+                for (let x = canvas.width * 0.15; x <= canvas.width * 0.85; x += canvas.width * 0.23) {
+                    ctx.beginPath();
+                    ctx.arc(x, 160, 60, Math.PI, 0);
+                    ctx.stroke();
+                }
+
+                backgroundElements.forEach(candle => {
+                    candle.flicker += 0.06;
+                    const glow = Math.sin(candle.flicker) * 4;
+
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(254, 240, 138, 0.9)';
+                    ctx.shadowColor = '#f59e0b';
+                    ctx.shadowBlur = 12 + glow;
+                    ctx.fillRect(candle.x, candle.y, 4, candle.size);
+
+                    ctx.fillStyle = '#f97316';
+                    ctx.beginPath();
+                    ctx.arc(candle.x + 2, candle.y - 4, 3.5 + glow * 0.2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                });
+
+            } else if (selectedArena === 'ministry') {
+                ctx.fillStyle = '#022c22';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.strokeStyle = 'rgba(234, 179, 8, 0.25)';
+                ctx.lineWidth = 6;
+                ctx.strokeRect(canvas.width / 2 - 140, 80, 280, 270);
+
+            } else if (selectedArena === 'forest') {
+                ctx.fillStyle = '#020617';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#0f172a';
+                for (let i = 0; i < canvas.width; i += 110) {
+                    ctx.fillRect(i, 70, 48, canvas.height - 70);
+                }
+
+            } else if (selectedArena === 'graveyard') {
+                ctx.fillStyle = '#050505';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#1c1917';
+                for (let i = 80; i < canvas.width; i += 200) {
+                    ctx.fillRect(i, canvas.height - 210, 45, 100);
+                }
+
+            } else if (selectedArena === 'mysteries') {
+                ctx.fillStyle = '#030712';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
+                for (let x = 60; x < canvas.width; x += 140) {
+                    for (let y = 80; y < canvas.height - 150; y += 80) {
+                        ctx.beginPath();
+                        ctx.arc(x, y, 12, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            // Ground Stage Platform
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, canvas.height - 110, canvas.width, 110);
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            ctx.lineWidth = 2;
+            for (let x = 0; x < canvas.width; x += 60) {
+                ctx.strokeRect(x, canvas.height - 110, 60, 60);
+            }
+        }
+
+        function initBackgroundElements() {
+            backgroundElements = [];
+            for (let i = 0; i < 40; i++) {
+                backgroundElements.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * (canvas.height * 0.45),
+                    size: 8 + Math.random() * 10,
+                    flicker: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        function startGame() {
+            if (!selectedP1 || !selectedP2) return;
+
+            document.getElementById('select-screen').classList.add('hidden');
+            document.getElementById('hud-layer').classList.remove('hidden');
+
+            document.getElementById('p1-name-hud').innerText = CHARACTERS[selectedP1].name;
+            document.getElementById('p2-name-hud').innerText = CHARACTERS[selectedP2].name;
+
+            p1Wins = 0;
+            p2Wins = 0;
+            currentRound = 1;
+            updateWinsUI();
+
+            startRound();
+        }
+
+        function startRound() {
+            document.getElementById('winner-modal').classList.add('hidden');
+            document.getElementById('clash-overlay').classList.add('hidden');
+            document.getElementById('round-text').innerText = `ROUND ${currentRound}`;
+
+            player1 = new Wizard(160, 300, selectedP1, true);
+            player2 = new Wizard(canvas.width - 210, 300, selectedP2, false);
+
+            projectiles = [];
+            particles = [];
+            inClash = false;
+            gameActive = true;
+            gameTimer = 60;
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!gameActive || inClash) return;
+                gameTimer--;
+                document.getElementById('timer').innerText = gameTimer;
+                if (gameTimer <= 0) {
+                    endRoundByTime();
+                }
+            }, 1000);
+
+            initBackgroundElements();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateWinsUI() {
+            const p1Dots = document.getElementById('p1-wins').children;
+            const p2Dots = document.getElementById('p2-wins').children;
+
+            for (let i = 0; i < 2; i++) {
+                p1Dots[i].className = i < p1Wins ? "w-2.5 h-2.5 rounded-full bg-amber-400 border border-amber-400" : "w-2.5 h-2.5 rounded-full border border-amber-400 bg-transparent";
+                p2Dots[i].className = i < p2Wins ? "w-2.5 h-2.5 rounded-full bg-emerald-400 border border-emerald-400" : "w-2.5 h-2.5 rounded-full border border-emerald-400 bg-transparent";
+            }
+        }
+
+        function backToCharSelect() {
+            gameActive = false;
+            if (timerInterval) clearInterval(timerInterval);
+            document.getElementById('hud-layer').classList.add('hidden');
+            document.getElementById('select-screen').classList.remove('hidden');
+        }
+
+        function nextRound() {
+            if (p1Wins >= 2 || p2Wins >= 2) {
+                p1Wins = 0;
+                p2Wins = 0;
+                currentRound = 1;
+                updateWinsUI();
+            } else {
+                currentRound++;
+            }
+            startRound();
+        }
+
+        /* KEYBOARD LISTENERS */
+        window.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+
+            // Priori Incantatem Clash Mashing
+            if (inClash) {
+                if (e.code === 'KeyJ') { clashProgress += 4; audio.playClashSound(); }
+                if (e.code === 'Digit1' || e.code === 'Numpad1') { clashProgress -= 4; audio.playClashSound(); }
+                return;
+            }
+
+            if (!gameActive) return;
+
+            // PLAYER 1 COMMANDS (WASD + J/K/L/I)
+            if (e.code === 'KeyJ') player1.castSpell('basic');
+            if (e.code === 'KeyK') player1.castSpell('spell1');
+            if (e.code === 'KeyL') player1.castSpell('spell2');
+            if (e.code === 'KeyS') player1.startRoll();
+            if (e.code === 'KeyI') player1.startShield();
+
+            // PLAYER 2 COMMANDS (Arrows + 1/2/3/5)
+            if (e.code === 'Digit1' || e.code === 'Numpad1') player2.castSpell('basic');
+            if (e.code === 'Digit2' || e.code === 'Numpad2') player2.castSpell('spell1');
+            if (e.code === 'Digit3' || e.code === 'Numpad3') player2.castSpell('spell2');
+            if (e.code === 'ArrowDown') player2.startRoll();
+            if (e.code === 'Digit5' || e.code === 'Numpad5') player2.startShield();
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+            if (e.code === 'KeyI') player1.isShielding = false;
+            if (e.code === 'Digit5' || e.code === 'Numpad5') player2.isShielding = false;
+        });
+
+        function processInput() {
+            if (!gameActive || inClash) return;
+
+            // P1 Movement (WASD)
+            player1.vx = 0;
+            if (!player1.isRolling) {
+                if (keys['KeyA']) player1.vx = -player1.charData.speed;
+                if (keys['KeyD']) player1.vx = player1.charData.speed;
+                if (keys['KeyW'] && player1.isGrounded) {
+                    player1.vy = -13.8;
+                    player1.isGrounded = false;
+                }
+            }
+
+            // P2 Movement (Setas)
+            player2.vx = 0;
+            if (!player2.isRolling) {
+                if (keys['ArrowLeft']) player2.vx = -player2.charData.speed;
+                if (keys['ArrowRight']) player2.vx = player2.charData.speed;
+                if (keys['ArrowUp'] && player2.isGrounded) {
+                    player2.vy = -13.8;
+                    player2.isGrounded = false;
+                }
+            }
+        }
+
+        /* PRIORI INCANTATEM CLASH LOGIC */
+        function checkSpellCollisions() {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                for (let j = i - 1; j >= 0; j--) {
+                    const p1 = projectiles[i];
+                    const p2 = projectiles[j];
+
+                    if (p1 && p2 && p1.owner !== p2.owner) {
+                        const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+                        if (dist < p1.radius + p2.radius) {
+                            if (p1.data.manaCost > 0 && p2.data.manaCost > 0) {
+                                triggerPrioriIncantatem();
+                                p1.active = false;
+                                p2.active = false;
+                                return;
+                            } else {
+                                createParticles((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, '#ffffff', 20);
+                                p1.active = false;
+                                p2.active = false;
+                                audio.playExplosion();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function triggerPrioriIncantatem() {
+            inClash = true;
+            clashProgress = 50;
+            document.getElementById('clash-overlay').classList.remove('hidden');
+
+            const clashTimer = setInterval(() => {
+                if (!inClash) {
+                    clearInterval(clashTimer);
+                    return;
+                }
+
+                document.getElementById('clash-bar').style.width = `${clashProgress}%`;
+
+                if (clashProgress >= 100) {
+                    clearInterval(clashTimer);
+                    resolveClash(player1, player2);
+                } else if (clashProgress <= 0) {
+                    clearInterval(clashTimer);
+                    resolveClash(player2, player1);
+                }
+            }, 50);
+        }
+
+        function resolveClash(winner, loser) {
+            inClash = false;
+            document.getElementById('clash-overlay').classList.add('hidden');
+            loser.hp -= 40;
+            loser.stunTimer = 45;
+            createParticles(loser.x + 20, loser.y + 35, '#f59e0b', 50);
+            audio.playExplosion();
+        }
+
+        function updateHUD() {
+            if (!player1 || !player2) return;
+
+            const p1Pct = Math.max(0, (player1.hp / player1.maxHp) * 100);
+            const p2Pct = Math.max(0, (player2.hp / player2.maxHp) * 100);
+
+            document.getElementById('p1-hp-bar').style.width = `${p1Pct}%`;
+            document.getElementById('p2-hp-bar').style.width = `${p2Pct}%`;
+            document.getElementById('p1-hp-text').innerText = `${Math.ceil(player1.hp)} HP`;
+            document.getElementById('p2-hp-text').innerText = `${Math.ceil(player2.hp)} HP`;
+
+            document.getElementById('p1-mana-bar').style.width = `${(player1.mana / player1.maxMana) * 100}%`;
+            document.getElementById('p2-mana-bar').style.width = `${(player2.mana / player2.maxMana) * 100}%`;
+
+            const p1ComboUI = document.getElementById('p1-combo');
+            if (player1.comboCount > 1) {
+                p1ComboUI.innerText = `${player1.comboCount}x COMBO!`;
+                p1ComboUI.style.opacity = '1';
+            } else { p1ComboUI.style.opacity = '0'; }
+
+            const p2ComboUI = document.getElementById('p2-combo');
+            if (player2.comboCount > 1) {
+                p2ComboUI.innerText = `${player2.comboCount}x COMBO!`;
+                p2ComboUI.style.opacity = '1';
+            } else { p2ComboUI.style.opacity = '0'; }
+        }
+
+        function endRound(winner) {
+            gameActive = false;
+            if (timerInterval) clearInterval(timerInterval);
+
+            if (winner === player1) p1Wins++;
+            else if (winner === player2) p2Wins++;
+
+            updateWinsUI();
+
+            const modal = document.getElementById('winner-modal');
+            const title = document.getElementById('winner-title');
+            const subtitle = document.getElementById('winner-subtitle');
+            const btn = document.getElementById('next-round-btn');
+
+            modal.classList.remove('hidden');
+
+            if (p1Wins >= 2) {
+                title.innerText = `${player1.charData.name} Venceu o Duelo!`;
+                subtitle.innerText = "Campeão das Artes Mágicas!";
+                btn.innerText = "Novo Duelo";
+            } else if (p2Wins >= 2) {
+                title.innerText = `${player2.charData.name} Venceu o Duelo!`;
+                subtitle.innerText = "Campeão das Artes Mágicas!";
+                btn.innerText = "Novo Duelo";
+            } else if (winner) {
+                title.innerText = `${winner.charData.name} Venceu o Round ${currentRound}!`;
+                subtitle.innerText = "Prepare-se para a próxima rodada.";
+                btn.innerText = "Próximo Round";
+            } else {
+                title.innerText = "Empate!";
+                subtitle.innerText = "Nenhum bruxo obteve vantagem.";
+                btn.innerText = "Próximo Round";
+            }
+        }
+
+        function endRoundByTime() {
+            if (player1.hp > player2.hp) endRound(player1);
+            else if (player2.hp > player1.hp) endRound(player2);
+            else endRound(null);
+        }
+
+        /* MAIN GAME LOOP */
+        function gameLoop() {
+            if (!gameActive) return;
+
+            processInput();
+
+            player1.update();
+            player2.update();
+
+            projectiles.forEach(p => {
+                p.update();
+                const target = p.owner === player1 ? player2 : player1;
+
+                if (!p.active) return;
+
+                const dist = Math.hypot(p.x - (target.x + target.width / 2), p.y - (target.y + target.height / 2));
+                if (dist < p.radius + 28) {
+                    
+                    if (target.isShielding && target.perfectShieldWindow > 0 && !p.reflected) {
+                        p.reflected = true;
+                        p.dir *= -1;
+                        p.speed *= -1.4;
+                        p.owner = target;
+                        audio.playReflectSound();
+                        createParticles(p.x, p.y, '#fef08a', 25);
+                        return;
+                    }
+
+                    p.active = false;
+                    if (target.isShielding) {
+                        audio.playWandZap(300);
+                        createParticles(p.x, p.y, '#38bdf8', 14);
+                    } else if (target.isRolling) {
+                        createParticles(p.x, p.y, '#94a3b8', 10);
+                    } else {
+                        audio.playExplosion();
+                        target.hp -= p.data.damage;
+                        createParticles(p.x, p.y, p.data.color, 28);
+
+                        p.owner.comboCount++;
+                        p.owner.comboTimer = 90;
+
+                        if (p.data.stun) target.stunTimer = p.data.stun;
+                        if (p.data.freeze) target.freezeTimer = p.data.freeze;
+                        if (p.data.push) target.x += target.facing * -p.data.push * 8;
+                    }
+                }
+            });
+
+            projectiles = projectiles.filter(p => p.active);
+            checkSpellCollisions();
+
+            particles.forEach(pt => {
+                pt.x += pt.vx;
+                pt.y += pt.vy;
+                pt.life--;
+            });
+            particles = particles.filter(pt => pt.life > 0);
+
+            if (player1.hp <= 0 && player2.hp <= 0) endRound(null);
+            else if (player1.hp <= 0) endRound(player2);
+            else if (player2.hp <= 0) endRound(player1);
+
+            drawArenaBackground();
+
+            particles.forEach(pt => {
+                ctx.fillStyle = pt.color;
+                ctx.fillRect(pt.x, pt.y, 3.5, 3.5);
+            });
+
+            projectiles.forEach(p => p.draw());
+            player1.draw();
+            player2.draw();
+
+            updateHUD();
+
+            requestAnimationFrame(gameLoop);
+        }
+    </script>
+</body>
+</html>

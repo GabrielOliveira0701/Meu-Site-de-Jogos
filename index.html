@@ -252,11 +252,11 @@
               </div>
 
               <h2 class="text-4xl sm:text-5xl font-black tracking-widest text-white">
-                A MANSÃO
+                {{ featuredGame.title.toLocaleUpperCase("pt-BR") }}
               </h2>
 
               <p class="text-gray-300 mt-3">
-                Nem todo segredo deve ser descoberto.
+                Explore a mansão, encontre pistas e descubra como escapar.
               </p>
 
               <button @click="openGame(featuredGame)"
@@ -268,7 +268,7 @@
 
             <div class="absolute top-5 right-5 text-xs font-bold
                         bg-black/60 border border-cyan-400/30 rounded-full px-3 py-2 text-cyan-200">
-              🕯️ TERROR • PUZZLE
+              🕯️ {{ featuredGame.category.toLocaleUpperCase("pt-BR") }}
             </div>
           </div>
         </div>
@@ -638,111 +638,92 @@ createApp({
           emoji: "🏰",
           badge: "DESTAQUE",
           version: "v1.0.0",
-          platform: "Navegador / PC",
+          platform: "Navegador",
           developer: "ALCATECH GAMES",
-          description: "Investigue uma mansão misteriosa e descubra seus segredos.",
+          description: "Resolva enigmas e encontre uma saída da mansão.",
           longDescription:
-            "Você está preso em uma mansão cheia de mistérios. Explore os cômodos, encontre objetos escondidos, resolva enigmas e descubra como escapar. Cada pista pode ser importante para sua sobrevivência.",
+            "Explore a mansão, encontre pistas e resolva enigmas para descobrir como escapar.",
           tags: ["Mistério", "Enigmas", "Exploração"],
           gradient: "linear-gradient(135deg,#082f49,#10172d,#0e7490)",
           featured: true,
           releaseOrder: 1,
-          playUrl: "",
+          playUrl: "Jogos/Escape.html",
           downloadUrl: ""
         },
         {
           id: 2,
-          title: "Shadow Quest",
+          title: "Gabryel Adventure",
           category: "Aventura",
-          emoji: "⚔️",
-          badge: "EM BREVE",
-          version: "v0.1.0",
-          platform: "PC",
+          emoji: "🗺️",
+          badge: "DISPONÍVEL",
+          version: "v1.0.0",
+          platform: "Navegador",
           developer: "ALCATECH GAMES",
-          description: "Uma jornada por terras misteriosas e perigosas.",
+          description: "Parta para uma aventura no jogo Gabryel Adventure.",
           longDescription:
-            "Explore um mundo de fantasia, descubra lugares esquecidos e enfrente desafios durante uma grande aventura.",
-          tags: ["Fantasia", "Exploração"],
+            "Entre em Gabryel Adventure e descubra os desafios desta aventura.",
+          tags: ["Aventura", "Exploração"],
           gradient: "linear-gradient(135deg,#0c4a6e,#20152d,#155e75)",
           featured: false,
           releaseOrder: 2,
-          playUrl: "",
+          playUrl: "Jogos/GabryelAdventure.html",
           downloadUrl: ""
         },
         {
           id: 3,
-          title: "Cyber Protocol",
-          category: "Puzzle",
-          emoji: "🤖",
-          badge: "EM BREVE",
-          version: "v0.1.0",
-          platform: "PC",
+          title: "Duelo de Bruxos",
+          category: "Luta",
+          emoji: "🪄",
+          badge: "DISPONÍVEL",
+          version: "v1.0.0",
+          platform: "Navegador",
           developer: "ALCATECH GAMES",
-          description: "Resolva códigos em um laboratório tecnológico.",
+          description: "Escolha seu personagem e participe de um duelo mágico.",
           longDescription:
-            "Você é a última esperança de um laboratório futurista. Analise os sistemas, decifre códigos e impeça uma falha que pode comprometer tudo.",
-          tags: ["Lógica", "Tecnologia"],
+            "Entre em um duelo de bruxos e descubra quem vencerá o confronto.",
+          tags: ["Magia", "Duelo"],
           gradient: "linear-gradient(135deg,#064e5b,#111827,#155e75)",
           featured: false,
           releaseOrder: 3,
-          playUrl: "",
+          playUrl: "Jogos/HarryPotter.html",
           downloadUrl: ""
         },
         {
           id: 4,
-          title: "Noite Sombria",
-          category: "Terror",
-          emoji: "👁️",
-          badge: "EM BREVE",
-          version: "v0.1.0",
-          platform: "PC",
+          title: "Pixel Fury",
+          category: "Luta",
+          emoji: "🥊",
+          badge: "DISPONÍVEL",
+          version: "v1.0.0",
+          platform: "Navegador",
           developer: "ALCATECH GAMES",
-          description: "Algo está observando você no escuro.",
+          description: "Um jogo de luta retrô em pixel art para dois jogadores.",
           longDescription:
-            "Investigue uma construção abandonada, encontre pistas e tente sobreviver a uma noite em que nada é o que parece.",
-          tags: ["Suspense", "Mistério"],
+            "Enfrente outro jogador em uma luta 16 bits. Use movimentos, golpes e especiais para vencer.",
+          tags: ["Pixel Art", "Luta", "Dois jogadores"],
           gradient: "linear-gradient(135deg,#022c22,#171717,#082f49)",
           featured: false,
           releaseOrder: 4,
-          playUrl: "",
+          playUrl: "Jogos/Pixel%20Fury%20%E2%80%93%20Jogo%20de%20Luta%2016%20bits.html",
           downloadUrl: ""
         },
         {
           id: 5,
-          title: "Pixel Legends",
-          category: "Plataforma",
-          emoji: "👾",
-          badge: "EM BREVE",
-          version: "v0.1.0",
-          platform: "PC",
+          title: "Star Wars: Lightsaber Duel - Ultra Edition",
+          category: "Luta",
+          emoji: "⚔️",
+          badge: "DISPONÍVEL",
+          version: "v1.0.0",
+          platform: "Navegador",
           developer: "ALCATECH GAMES",
-          description: "Uma aventura retrô cheia de desafios.",
+          description: "Entre em um duelo de sabres de luz no universo Star Wars.",
           longDescription:
-            "Entre em um mundo pixelado, supere obstáculos, descubra segredos e avance por fases cheias de surpresas.",
-          tags: ["Pixel Art", "Clássico"],
+            "Escolha seu lado e participe de um duelo de sabres de luz na edição Ultra.",
+          tags: ["Star Wars", "Duelo", "Sabres de luz"],
           gradient: "linear-gradient(135deg,#164e63,#0c4a6e,#082f49)",
           featured: false,
           releaseOrder: 5,
-          playUrl: "",
-          downloadUrl: ""
-        },
-        {
-          id: 6,
-          title: "Galactic Run",
-          category: "Ação",
-          emoji: "🚀",
-          badge: "EM BREVE",
-          version: "v0.1.0",
-          platform: "PC",
-          developer: "ALCATECH GAMES",
-          description: "Corra pelo espaço e supere seus limites.",
-          longDescription:
-            "Atravesse cenários espaciais, desvie de obstáculos e descubra até onde você consegue chegar nesta aventura de ação.",
-          tags: ["Espaço", "Arcade"],
-          gradient: "linear-gradient(135deg,#022c22,#155e75,#0c4a6e)",
-          featured: false,
-          releaseOrder: 6,
-          playUrl: "",
+          playUrl: "Jogos/StarWarsDuel.html",
           downloadUrl: ""
         }
       ]
