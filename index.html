@@ -516,7 +516,7 @@
        aria-modal="true"
        :aria-label="'Detalhes de ' + selectedGame.title">
 
-    <div class="w-full max-w-2xl rounded-3xl overflow-hidden
+    <div class="w-full max-w-2xl max-h-[90vh] rounded-3xl overflow-hidden overflow-y-auto
                 bg-[#101625] border border-cyan-400/30 shadow-2xl my-auto">
 
       <div class="relative min-h-56 flex items-center justify-center"
@@ -576,6 +576,88 @@
           </div>
         </div>
 
+        <section class="mt-8 border-t border-white/10 pt-6" aria-labelledby="reviews-title">
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h3 id="reviews-title" class="text-xl font-bold text-white">Avaliações</h3>
+              <p class="text-sm text-gray-400 mt-1">
+                <span class="text-cyan-300 font-bold">
+                  {{ reviews.length ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1) : "—" }} ★
+                </span>
+                · {{ reviews.length }} {{ reviews.length === 1 ? "avaliação" : "avaliações" }}
+              </p>
+            </div>
+            <span class="text-xs text-gray-500">Sem conta</span>
+          </div>
+
+          <form @submit.prevent="submitReview" class="mt-5 space-y-3">
+            <label class="block text-sm font-semibold text-gray-200">Sua nota</label>
+            <div class="flex gap-2" role="group" aria-label="Escolha uma nota de 1 a 5">
+              <button v-for="star in 5" :key="star" type="button"
+                @click="reviewForm.rating = star"
+                :aria-label="star + (star === 1 ? ' estrela' : ' estrelas')"
+                :aria-pressed="reviewForm.rating === star"
+                class="text-3xl transition"
+                :class="star <= reviewForm.rating ? 'text-yellow-300' : 'text-gray-600 hover:text-yellow-200'">
+                ★
+              </button>
+            </div>
+
+            <label class="block text-sm font-semibold text-gray-200" for="review-author">
+              Apelido <span class="text-gray-500 font-normal">(opcional)</span>
+            </label>
+            <input id="review-author" v-model="reviewForm.authorName"
+              type="text" maxlength="30" placeholder="Visitante"
+              class="w-full rounded-xl bg-[#080b14] border border-white/10 px-4 py-3 text-white outline-none focus:border-cyan-300">
+
+            <label class="block text-sm font-semibold text-gray-200" for="review-comment">
+              Comentário <span class="text-gray-500 font-normal">(opcional, até 500 caracteres)</span>
+            </label>
+            <textarea id="review-comment" v-model="reviewForm.comment"
+              maxlength="500" rows="3" placeholder="Conte o que achou do jogo..."
+              class="w-full resize-y rounded-xl bg-[#080b14] border border-white/10 px-4 py-3 text-white outline-none focus:border-cyan-300"></textarea>
+
+            <button type="submit" :disabled="reviewSubmitting || !reviewForm.rating"
+              class="rounded-xl neon-button px-5 py-3 disabled:opacity-50 disabled:cursor-not-allowed">
+              {{ reviewSubmitting ? "Enviando..." : "Enviar avaliação" }}
+            </button>
+          </form>
+
+          <p v-if="reviewError" role="alert" class="mt-3 text-sm text-red-300">
+            {{ reviewError }}
+          </p>
+          <p v-if="reviewSuccess" role="status" class="mt-3 text-sm text-emerald-300">
+            {{ reviewSuccess }}
+          </p>
+
+          <div class="mt-6">
+            <p v-if="reviewLoading" class="text-sm text-gray-400">Carregando avaliações...</p>
+            <p v-else-if="!reviewError && !reviews.length" class="text-sm text-gray-400">
+              Ainda não há avaliações. Seja o primeiro!
+            </p>
+            <ul v-else-if="reviews.length" class="space-y-3">
+              <li v-for="review in reviews" :key="review.id"
+                class="rounded-xl bg-white/5 border border-white/5 p-4">
+                <div class="flex flex-wrap justify-between gap-2">
+                  <span class="font-semibold text-white">{{ review.author_name }}</span>
+                  <span class="text-yellow-300" :aria-label="review.rating + ' de 5 estrelas'">
+                    {{ "★".repeat(review.rating) }}{{ "☆".repeat(5 - review.rating) }}
+                  </span>
+                </div>
+                <p v-if="review.comment" class="mt-2 text-sm text-gray-300 whitespace-pre-wrap break-words">
+                  {{ review.comment }}
+                </p>
+                <time class="block mt-2 text-xs text-gray-500" :datetime="review.created_at">
+                  {{ new Date(review.created_at).toLocaleDateString("pt-BR") }}
+                </time>
+              </li>
+            </ul>
+          </div>
+          <p class="text-xs text-gray-500 mt-4">
+            Avaliações são públicas e não exigem conta. Sem login, não é possível garantir uma avaliação por pessoa.
+          </p>
+        </section>
+
         <div class="flex flex-col sm:flex-row gap-3 mt-7">
           <button @click="playGame(selectedGame)"
             class="flex-1 rounded-xl neon-button py-4">
@@ -629,6 +711,16 @@ createApp({
       selectedGame: null,
       notice: null,
       currentYear: new Date().getFullYear(),
+      reviews: [],
+      reviewLoading: false,
+      reviewSubmitting: false,
+      reviewError: "",
+      reviewSuccess: "",
+      reviewForm: {
+        rating: 0,
+        authorName: "",
+        comment: ""
+      },
 
       games: [
         {
@@ -763,6 +855,25 @@ createApp({
           releaseOrder: 7,
           playUrl: "Jogos/UltimateFootball.html",
           downloadUrl: ""
+        },
+        {
+          id: 8,
+          title: "Neon Highway ’86",
+          category: "Corrida",
+          emoji: "🏎️",
+          badge: "NOVO",
+          version: "v1.0.0",
+          platform: "Navegador / PC / Celular",
+          developer: "ALCATECH GAMES",
+          description: "Desvie dos carros e colete cristais nesta corrida neon.",
+          longDescription:
+            "Acelere por uma pista infinita, desvie do tráfego e colete cristais amarelos. Use as setas ou A e D no teclado, ou toque nos lados da tela para guiar.",
+          tags: ["Corrida", "Neon", "Desvio", "Recorde"],
+          gradient: "linear-gradient(135deg,#0d0221,#7a1fff,#ff2a6d)",
+          featured: false,
+          releaseOrder: 8,
+          playUrl: "Jogos/Neon%20Highway%20%2786.html",
+          downloadUrl: ""
         }
       ]
     };
@@ -817,6 +928,86 @@ createApp({
   methods: {
     openGame(game) {
       this.selectedGame = game;
+      this.reviews = [];
+      this.reviewLoading = true;
+      this.reviewError = "";
+      this.reviewSuccess = "";
+      this.reviewForm = { rating: 0, authorName: "", comment: "" };
+      this.loadReviews(game.id);
+    },
+
+    async readReviewsResponse(response) {
+      let result;
+
+      try {
+        result = await response.json();
+      } catch {
+        throw new Error(
+          response.ok
+            ? "O serviço de avaliações retornou uma resposta inválida."
+            : "A API de avaliações não está disponível. Confira a implantação no Vercel."
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(result.error || "Não foi possível concluir a solicitação.");
+      }
+
+      return result;
+    },
+
+    async loadReviews(gameId) {
+      this.reviewLoading = true;
+      this.reviewError = "";
+
+      try {
+        const response = await fetch(`/api/reviews?game_id=${encodeURIComponent(gameId)}`);
+        const result = await this.readReviewsResponse(response);
+
+        if (this.selectedGame && this.selectedGame.id === gameId) {
+          this.reviews = result.reviews;
+        }
+      } catch (error) {
+        if (this.selectedGame && this.selectedGame.id === gameId) {
+          this.reviewError = error.message || "Não foi possível carregar as avaliações.";
+        }
+      } finally {
+        if (this.selectedGame && this.selectedGame.id === gameId) {
+          this.reviewLoading = false;
+        }
+      }
+    },
+
+    async submitReview() {
+      if (!this.selectedGame || !this.reviewForm.rating || this.reviewSubmitting) {
+        return;
+      }
+
+      this.reviewSubmitting = true;
+      this.reviewError = "";
+      this.reviewSuccess = "";
+
+      try {
+        const response = await fetch("/api/reviews", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            game_id: this.selectedGame.id,
+            rating: this.reviewForm.rating,
+            author_name: this.reviewForm.authorName,
+            comment: this.reviewForm.comment
+          })
+        });
+        await this.readReviewsResponse(response);
+
+        this.reviewSuccess = "Avaliação enviada. Obrigado por compartilhar sua opinião!";
+        this.reviewForm = { rating: 0, authorName: "", comment: "" };
+        await this.loadReviews(this.selectedGame.id);
+      } catch (error) {
+        this.reviewError = error.message || "Não foi possível enviar sua avaliação.";
+      } finally {
+        this.reviewSubmitting = false;
+      }
     },
 
     playGame(game) {
