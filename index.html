@@ -32,7 +32,7 @@
   </script>
 
   <!-- Vue 3 -->
-  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
 
   <!-- Fonte -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -129,10 +129,48 @@
     }
 
     [v-cloak] { display: none; }
+
+    #startup-status {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      text-align: center;
+    }
+
+    #startup-status[hidden] { display: none; }
+
+    #startup-status > div {
+      max-width: 32rem;
+      padding: 2rem;
+      border: 1px solid rgba(0, 225, 255, 0.2);
+      border-radius: 1rem;
+      background: rgba(16, 22, 37, 0.88);
+    }
+
+    #startup-status h1 { margin: 0; font-size: 1.5rem; }
+    #startup-status p { color: #cbd5e1; line-height: 1.6; }
+    #startup-status button {
+      padding: 0.75rem 1rem;
+      border: 0;
+      border-radius: 0.75rem;
+      background: #00e5ff;
+      color: #080b14;
+      font-weight: 800;
+      cursor: pointer;
+    }
   </style>
 </head>
 
 <body>
+<div id="startup-status" role="status" aria-live="polite">
+  <div>
+    <h1>Iniciando ALCATECH GAMES...</h1>
+    <p>Se esta mensagem não desaparecer, verifique sua conexão e recarregue a página.</p>
+    <button type="button" onclick="window.location.reload()">Recarregar</button>
+  </div>
+</div>
+
 <div id="app" v-cloak>
 
   <!-- ================= HEADER ================= -->
@@ -1045,6 +1083,7 @@ createApp({
     }
   }
 }).mount("#app");
+document.getElementById("startup-status").hidden = true;
 </script>
 
 </body>
