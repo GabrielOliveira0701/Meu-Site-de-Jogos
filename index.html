@@ -294,7 +294,7 @@
               </h2>
 
               <p class="text-gray-300 mt-3">
-                Explore a mansão, encontre pistas e descubra como escapar.
+                {{ featuredGame.description }}
               </p>
 
               <button @click="openGame(featuredGame)"
@@ -775,7 +775,7 @@ createApp({
             "Explore a mansão, encontre pistas e resolva enigmas para descobrir como escapar.",
           tags: ["Mistério", "Enigmas", "Exploração"],
           gradient: "linear-gradient(135deg,#082f49,#10172d,#0e7490)",
-          featured: true,
+          featured: false,
           releaseOrder: 1,
           playUrl: "Jogos/Escape.html",
           downloadUrl: ""
@@ -927,9 +927,28 @@ createApp({
             "Assuma o papel de um analista e investigue um servidor comprometido em cinco exercícios interativos. Aprenda comandos Linux em um ambiente simulado, sem executar nenhuma instrução no sistema real.",
           tags: ["Linux", "Terminal", "Comandos", "Educação"],
           gradient: "linear-gradient(135deg,#07100c,#0f3a2c,#1aa66f)",
-          featured: false,
+          featured: true,
           releaseOrder: 9,
           playUrl: "https://andersonfariaas.github.io/Terminal_Linux/",
+          downloadUrl: ""
+        },
+        {
+          id: 10,
+          title: "MineBlock",
+          category: "Aventura / Sandbox",
+          emoji: "⛏️",
+          badge: "NOVO",
+          version: "v1.0.0",
+          platform: "Navegador / PC / Celular",
+          developer: "ALCATECH GAMES",
+          description: "Explore um mundo infinito, construa, crafte e sobreviva.",
+          longDescription:
+            "Explore um mundo infinito com biomas, ciclo de dia e noite, chuva e criaturas. Colete recursos, construa estruturas, use o inventário e crie armas para sobreviver nos modos clássico e criativo.",
+          tags: ["Sandbox", "Construção", "Mundo aberto", "Sobrevivência"],
+          gradient: "linear-gradient(135deg,#1f7a44,#65a30d,#0f172a)",
+          featured: false,
+          releaseOrder: 10,
+          playUrl: "Jogos/MINEBLOCK.html",
           downloadUrl: ""
         }
       ]
