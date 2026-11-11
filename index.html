@@ -97,6 +97,290 @@
       transform: scale(1.06);
     }
 
+    .featured-store {
+      max-width: 80rem;
+      margin: 0 auto;
+      padding: 0 1.25rem 4.5rem;
+    }
+
+    .featured-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, .85fr);
+      gap: 1.75rem;
+      align-items: stretch;
+      animation: featured-arrive .45s ease both;
+    }
+
+    .featured-artwork {
+      position: relative;
+      min-width: 0;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border: 1px solid rgba(0, 229, 255, .28);
+      border-radius: 1rem;
+      background: #101625;
+      box-shadow: 0 22px 65px rgba(0, 0, 0, .35);
+    }
+
+    .featured-artwork::after {
+      position: absolute;
+      inset: 35% 0 0;
+      content: "";
+      pointer-events: none;
+      background: linear-gradient(0deg, rgba(3, 7, 18, .88), transparent);
+    }
+
+    .featured-artwork img,
+    .featured-fallback {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .featured-artwork img {
+      z-index: 1;
+      object-fit: cover;
+      transition: transform .65s ease;
+    }
+
+    .featured-artwork:hover img { transform: scale(1.035); }
+
+    .featured-arrow {
+      position: absolute;
+      z-index: 4;
+      top: 50%;
+      display: grid;
+      width: 2.75rem;
+      height: 2.75rem;
+      place-items: center;
+      transform: translateY(-50%);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 999px;
+      background: rgba(3,7,18,.72);
+      color: white;
+      font-size: 1.7rem;
+      line-height: 1;
+      transition: background .2s ease, border-color .2s ease, transform .2s ease;
+    }
+
+    .featured-arrow:hover {
+      transform: translateY(-50%) scale(1.06);
+      border-color: rgba(0,229,255,.7);
+      background: rgba(8,47,73,.9);
+    }
+
+    .featured-arrow.previous { left: .85rem; }
+    .featured-arrow.next { right: .85rem; }
+
+    .featured-fallback {
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .featured-fallback::before,
+    .featured-fallback::after {
+      position: absolute;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+    }
+
+    .featured-fallback::before {
+      opacity: .18;
+      background-image: linear-gradient(rgba(255,255,255,.16) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.16) 1px, transparent 1px);
+      background-size: 36px 36px;
+      transform: perspective(350px) rotateX(12deg) scale(1.15);
+    }
+
+    .featured-fallback::after {
+      background: radial-gradient(ellipse at center, transparent 5%, rgba(3,7,18,.2) 85%);
+    }
+
+    .featured-fallback span {
+      position: relative;
+      z-index: 1;
+      font-size: 8rem;
+      filter: drop-shadow(0 10px 24px rgba(0,0,0,.45));
+    }
+
+    .featured-label {
+      position: absolute;
+      z-index: 2;
+      top: 1rem;
+      left: 1rem;
+      border: 1px solid rgba(0, 229, 255, .4);
+      border-radius: 999px;
+      background: rgba(3, 7, 18, .72);
+      padding: .5rem .75rem;
+      color: #a5f3fc;
+      font-size: .68rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+    }
+
+    .featured-art-title {
+      position: absolute;
+      z-index: 2;
+      right: 1.5rem;
+      bottom: 1.35rem;
+      left: 1.5rem;
+      overflow: hidden;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 900;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .featured-information {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      justify-content: center;
+      padding: .75rem 0 .75rem 1.5rem;
+      border-left: 1px solid rgba(255,255,255,.1);
+    }
+
+    .featured-information h2 {
+      margin: .7rem 0 0;
+      color: white;
+      font-size: 2.15rem;
+      font-weight: 900;
+      line-height: 1.12;
+      overflow-wrap: anywhere;
+    }
+
+    .featured-information > p {
+      margin: 1rem 0 0;
+      color: #cbd5e1;
+      line-height: 1.7;
+    }
+
+    .featured-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .85rem 1rem;
+      margin-top: 1.25rem;
+      color: #e2e8f0;
+      font-size: .85rem;
+    }
+
+    .featured-meta span { color: #94a3b8; }
+
+    .featured-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+      margin-top: 1.5rem;
+    }
+
+    .featured-actions button {
+      min-height: 3rem;
+      border-radius: .75rem;
+      padding: .75rem 1.1rem;
+      font-weight: 800;
+      transition: transform .2s ease, filter .2s ease, background .2s ease;
+    }
+
+    .featured-actions button:hover { transform: translateY(-2px); }
+
+    .featured-selector {
+      display: flex;
+      gap: .85rem;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+      padding: 1.25rem .15rem .75rem;
+      scrollbar-color: rgba(0,229,255,.45) rgba(255,255,255,.06);
+      scrollbar-width: thin;
+    }
+
+    .featured-option {
+      flex: 0 0 190px;
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: .8rem;
+      background: rgba(16,22,37,.85);
+      color: white;
+      text-align: left;
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .featured-option:hover { transform: translateY(-3px); border-color: rgba(0,229,255,.55); }
+
+    .featured-option.active {
+      border-color: #00e5ff;
+      box-shadow: 0 0 0 1px rgba(0,229,255,.35), 0 0 22px rgba(0,229,255,.14);
+    }
+
+    .featured-option-art {
+      display: grid;
+      aspect-ratio: 16 / 9;
+      place-items: center;
+      overflow: hidden;
+      font-size: 2.5rem;
+    }
+
+    .featured-option-art img { width: 100%; height: 100%; object-fit: cover; }
+
+    .featured-option-copy { display: block; padding: .65rem .75rem .75rem; }
+    .featured-option-title { display: block; overflow: hidden; font-size: .8rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+    .featured-option-category { display: block; margin-top: .25rem; color: #94a3b8; font-size: .7rem; }
+
+    .featured-carousel-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding-top: .5rem;
+    }
+
+    .featured-indicators { display: flex; align-items: center; gap: .55rem; }
+
+    .featured-indicator {
+      width: .6rem;
+      height: .6rem;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(148,163,184,.45);
+      transition: width .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+
+    .featured-indicator.active {
+      width: 1.55rem;
+      background: #00e5ff;
+      box-shadow: 0 0 12px rgba(0,229,255,.55);
+    }
+
+    @keyframes featured-arrive {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 760px) {
+      .featured-store { padding-right: 1rem; padding-left: 1rem; }
+      .featured-layout { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+      .featured-information { padding: 1rem 0 0; border-top: 1px solid rgba(255,255,255,.1); border-left: 0; }
+      .featured-information h2 { font-size: 1.8rem; }
+      .featured-option { flex-basis: 165px; }
+      .featured-carousel-footer { align-items: flex-start; }
+      .featured-arrow { width: 2.5rem; height: 2.5rem; }
+      .featured-arrow.previous { left: .55rem; }
+      .featured-arrow.next { right: .55rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .featured-layout { animation: none; }
+      .featured-artwork img,
+      .featured-arrow,
+      .featured-option,
+      .featured-indicator,
+      .featured-actions button { transition: none; }
+    }
+
     .neon-text {
       background: linear-gradient(90deg, #a5f3fc, #00e5ff);
       -webkit-background-clip: text;
@@ -175,20 +459,20 @@
 
   <!-- ================= HEADER ================= -->
   <header class="sticky top-0 z-40 glass">
-    <nav class="max-w-7xl mx-auto px-5 lg:px-8 h-20 flex items-center justify-between gap-5">
+    <nav class="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 h-20 flex items-center justify-between gap-2 sm:gap-5">
 
-      <a href="#" class="flex items-center gap-3 shrink-0"
+      <a href="#" class="flex items-center gap-2 sm:gap-3 shrink-0"
          aria-label="Alcatech Games, página inicial">
         <!-- Logo oficial Alcatech Games -->
-        <div class="w-14 h-14 rounded-xl overflow-hidden border border-cyan-300/50 shadow-lg shadow-cyan-500/25 shrink-0 bg-black">
+        <div class="w-10 h-10 sm:w-14 sm:h-14 rounded-xl overflow-hidden border border-cyan-300/50 shadow-lg shadow-cyan-500/25 shrink-0 bg-black">
           <img src="assets/alcatech-logo.jpeg" alt="Logo Alcatech Games: lobo gamer neon" class="w-full h-full object-cover">
         </div>
 
         <div>
-          <div class="font-black tracking-wider text-xl">
+          <div class="font-black tracking-wider text-base sm:text-xl">
             ALCA<span class="text-cyan-300">TECH</span> <span class="text-white">GAMES</span>
           </div>
-          <div class="text-[10px] tracking-[.25em] text-gray-400">
+          <div class="text-[9px] sm:text-[10px] tracking-[.12em] sm:tracking-[.25em] text-gray-400">
             SUA ALCATEIA GAMER
           </div>
         </div>
@@ -202,7 +486,7 @@
       </div>
 
       <a href="#jogos"
-         class="neon-button rounded-xl px-4 py-2.5 font-bold text-sm shrink-0">
+        class="neon-button rounded-xl px-3 sm:px-4 py-2.5 font-bold text-xs sm:text-sm shrink-0">
         Explorar jogos
       </a>
     </nav>
@@ -212,8 +496,7 @@
   <!-- ================= HERO ================= -->
   <main>
     <section id="inicio" class="hero-bg relative overflow-hidden">
-      <div class="max-w-7xl mx-auto px-5 lg:px-8 py-20 lg:py-28
-                  grid lg:grid-cols-2 gap-14 items-center">
+      <div class="max-w-7xl mx-auto px-5 lg:px-8 pt-20 lg:pt-24 pb-12">
 
         <div>
           <div class="inline-flex items-center gap-2 rounded-full border
@@ -270,48 +553,82 @@
           </div>
         </div>
 
-        <!-- Arte em destaque -->
-        <div class="relative">
-          <div class="absolute inset-0 bg-cyan-600/20 blur-3xl rounded-full"></div>
+      </div>
 
-          <div class="relative rounded-3xl border border-cyan-400/20 overflow-hidden
-                      bg-gradient-to-br from-zinc-950 via-slate-900 to-cyan-950
-                      min-h-[360px] sm:min-h-[440px] flex items-center justify-center shadow-2xl">
+      <section class="featured-store" aria-label="Carrossel de jogos em destaque"
+        @mouseenter="pauseFeaturedAutoplay" @mouseleave="resumeFeaturedAutoplay">
+        <div class="featured-layout" :key="currentFeaturedGame.id" aria-live="polite">
+          <div class="featured-artwork" :style="{ background: currentFeaturedGame.gradient }">
+            <div v-if="!currentFeaturedGame.cover || featuredImageFailed"
+              class="featured-fallback" :style="{ background: currentFeaturedGame.gradient }" aria-hidden="true">
+              <span>{{ currentFeaturedGame.emoji }}</span>
+            </div>
+            <img v-else :src="currentFeaturedGame.cover" :alt="'Capa de ' + currentFeaturedGame.title"
+              @error="featuredImageFailed = true">
+            <span class="featured-label">JOGO EM DESTAQUE</span>
+            <div class="featured-art-title">{{ currentFeaturedGame.title }}</div>
 
-            <div class="absolute inset-0 opacity-15"
-                 style="background-image:linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.12) 1px,transparent 1px);background-size:35px 35px;">
+            <button type="button" class="featured-arrow previous" @click="previousFeatured()"
+              aria-label="Jogo em destaque anterior">‹</button>
+            <button type="button" class="featured-arrow next" @click="nextFeatured()"
+              aria-label="Próximo jogo em destaque">›</button>
+          </div>
+
+          <div class="featured-information">
+            <span class="text-xs font-bold tracking-[.2em] text-cyan-300">
+              {{ currentFeaturedGame.category.toLocaleUpperCase("pt-BR") }}
+            </span>
+            <h2>{{ currentFeaturedGame.title }}</h2>
+            <p>{{ currentFeaturedGame.description }}</p>
+
+            <div class="featured-meta">
+              <div><span class="block text-xs">DESENVOLVEDOR</span>{{ currentFeaturedGame.developer }}</div>
+              <div><span class="block text-xs">STATUS</span>{{ currentFeaturedGame.playUrl ? "Disponível" : "Em desenvolvimento" }}</div>
+              <div><span class="block text-xs">PLATAFORMA</span>{{ currentFeaturedGame.platform }}</div>
+              <div v-if="currentFeaturedGame.technology"><span class="block text-xs">TECNOLOGIA</span>{{ currentFeaturedGame.technology }}</div>
             </div>
 
-            <div class="relative text-center p-8">
-              <img src="assets/alcatech-logo.jpeg" alt="Alcatech Games — logo oficial" class="w-full max-w-md rounded-2xl mb-7 border border-cyan-300/30 shadow-2xl shadow-cyan-500/20">
-
-              <div class="text-xs tracking-[.35em] text-cyan-200 font-bold mb-3">
-                JOGO EM DESTAQUE
-              </div>
-
-              <h2 class="text-4xl sm:text-5xl font-black tracking-widest text-white">
-                {{ featuredGame.title.toLocaleUpperCase("pt-BR") }}
-              </h2>
-
-              <p class="text-gray-300 mt-3">
-                {{ featuredGame.description }}
-              </p>
-
-              <button @click="openGame(featuredGame)"
-                class="mt-7 rounded-xl bg-white text-gray-950
-                       px-6 py-3 font-bold hover:bg-cyan-100 transition shadow-lg">
-                Descubra jogo →
+            <div class="featured-actions">
+              <button @click="playGame(currentFeaturedGame)" class="neon-button">
+                ▶ JOGAR AGORA
               </button>
-            </div>
-
-            <div class="absolute top-5 right-5 text-xs font-bold
-                        bg-black/60 border border-cyan-400/30 rounded-full px-3 py-2 text-cyan-200">
-              🕯️ {{ featuredGame.category.toLocaleUpperCase("pt-BR") }}
+              <button @click="openGame(currentFeaturedGame)"
+                class="border border-white/15 bg-white/5 text-white hover:bg-white/10">
+                VER DETALHES
+              </button>
             </div>
           </div>
         </div>
 
-      </div>
+        <div class="featured-selector" role="group" aria-label="Selecionar jogo em destaque">
+          <button v-for="(game, index) in featuredGames" :key="game.id" type="button"
+            @click="selectFeatured(index)"
+            class="featured-option"
+            :class="{ active: currentFeaturedGame.id === game.id }"
+            :aria-pressed="currentFeaturedGame.id === game.id"
+            :aria-label="'Destacar ' + game.title">
+            <span class="featured-option-art" :class="{ 'image-error': featuredCoverErrors.includes(game.id) }"
+              :data-fallback="game.emoji" :style="{ background: game.gradient }" aria-hidden="true">
+              <img v-if="game.cover && !featuredCoverErrors.includes(game.id)" :src="game.cover" alt=""
+                @error="markFeaturedCoverError(game.id)">
+              <template v-else>{{ game.emoji }}</template>
+            </span>
+            <span class="featured-option-copy">
+              <span class="featured-option-title">{{ game.title }}</span>
+              <span class="featured-option-category">{{ game.category }}</span>
+            </span>
+          </button>
+        </div>
+
+        <div class="featured-carousel-footer">
+          <div class="featured-indicators" role="group" aria-label="Posição no carrossel">
+            <button v-for="(game, index) in featuredGames" :key="game.id" type="button"
+              class="featured-indicator" :class="{ active: currentFeaturedGame.id === game.id }"
+              @click="selectFeatured(index)" :aria-label="'Ir para ' + game.title"
+              :aria-pressed="currentFeaturedGame.id === game.id"></button>
+          </div>
+        </div>
+      </section>
     </section>
 
 
@@ -747,6 +1064,11 @@ createApp({
       activeCategory: "Todos",
       sortBy: "featured",
       selectedGame: null,
+      currentFeaturedIndex: 3,
+      featuredInterval: null,
+      featuredPaused: false,
+      featuredImageFailed: false,
+      featuredCoverErrors: [],
       notice: null,
       currentYear: new Date().getFullYear(),
       reviews: [],
@@ -775,7 +1097,7 @@ createApp({
             "Explore a mansão, encontre pistas e resolva enigmas para descobrir como escapar.",
           tags: ["Mistério", "Enigmas", "Exploração"],
           gradient: "linear-gradient(135deg,#082f49,#10172d,#0e7490)",
-          featured: false,
+          featured: true,
           releaseOrder: 1,
           playUrl: "Jogos/Escape.html",
           downloadUrl: ""
@@ -794,7 +1116,7 @@ createApp({
             "Uma aventura de plataforma com oito fases em diferentes cenários. Pule buracos, derrote inimigos, colete moedas, desbloqueie itens e skins na lojinha e enfrente chefes pelo caminho. Também oferece controles na tela para jogar no celular.",
           tags: ["Plataforma", "Oito fases", "Chefes", "Loja e skins"],
           gradient: "linear-gradient(135deg,#075078,#008bb4,#22a533)",
-          featured: false,
+          featured: true,
           releaseOrder: 2,
           playUrl: "Jogos/GabryelAdventure.html",
           downloadUrl: ""
@@ -842,18 +1164,18 @@ createApp({
           title: "Star Wars: Lightsaber Duel - Ultra Edition",
           category: "Luta",
           emoji: "⚔️",
-          badge: "DISPONÍVEL",
+          badge: "ATUALIZADO",
           version: "v1.0.0",
           platform: "Navegador",
           developer: "ALCATECH GAMES",
-          description: "Entre em um duelo de sabres de luz no universo Star Wars.",
+          description: "Escolha entre 12 personagens e duele em quatro arenas, contra a IA ou outro jogador.",
           longDescription:
-            "Escolha seu lado e participe de um duelo de sabres de luz na edição Ultra.",
-          tags: ["Star Wars", "Duelo", "Sabres de luz"],
+            "A edição Ultra atualizada traz 12 personagens, quatro arenas, partidas para dois jogadores, modo contra a IA com níveis de dificuldade e modo de treino. Escolha seu campeão, domine habilidades especiais e lute em duelos de sabres de luz.",
+          tags: ["Star Wars", "Duelo", "12 personagens", "4 arenas", "VS IA", "Treino"],
           gradient: "linear-gradient(135deg,#164e63,#0c4a6e,#082f49)",
           featured: false,
           releaseOrder: 5,
-          playUrl: "Jogos/StarWarsDuel.html",
+          playUrl: "Jogos/Star_Wars_Lightsaber_Duel_Atualizado.html",
           downloadUrl: ""
         },
         {
@@ -870,7 +1192,7 @@ createApp({
             "Entre em uma missão de voo militar, escolha a dificuldade e digite as palavras exibidas para controlar sua velocidade. Avance por oito capítulos, acumule pontos e mantenha a integridade do caça.",
           tags: ["Digitação", "Aviação", "Missões", "Precisão"],
           gradient: "linear-gradient(135deg,#1e3a5f,#172554,#0f766e)",
-          featured: false,
+          featured: true,
           releaseOrder: 6,
           playUrl: "https://hichi-ui.github.io/altitude-z/",
           downloadUrl: ""
@@ -963,8 +1285,19 @@ createApp({
       ];
     },
 
-    featuredGame() {
-      return this.games.find(game => game.featured) || this.games[0];
+    featuredGames() {
+      const selectedGames = this.games.filter(game => game.featured);
+      return selectedGames.length ? selectedGames : this.games;
+    },
+
+    currentFeaturedGame() {
+      if (!this.games.some(game => game.featured)) {
+        return this.games[0];
+      }
+
+      return this.featuredGames[this.currentFeaturedIndex] ||
+        this.featuredGames.find(game => game.featured) ||
+        this.featuredGames[0] || this.games[0];
     },
 
     filteredGames() {
@@ -1001,7 +1334,78 @@ createApp({
     }
   },
 
+  mounted() {
+    this.startFeaturedAutoplay();
+  },
+
+  beforeUnmount() {
+    this.stopFeaturedAutoplay();
+  },
+
   methods: {
+    startFeaturedAutoplay() {
+      this.stopFeaturedAutoplay();
+      if (this.featuredPaused || this.featuredGames.length < 2) return;
+
+      this.featuredInterval = window.setInterval(() => this.nextFeatured(false), 6000);
+    },
+
+    stopFeaturedAutoplay() {
+      if (this.featuredInterval !== null) {
+        window.clearInterval(this.featuredInterval);
+        this.featuredInterval = null;
+      }
+    },
+
+    restartFeaturedAutoplay() {
+      this.stopFeaturedAutoplay();
+      this.startFeaturedAutoplay();
+    },
+
+    nextFeatured(manual = true) {
+      const total = this.featuredGames.length;
+      if (!total) return;
+
+      const currentIndex = this.featuredGames.findIndex(game => game.id === this.currentFeaturedGame.id);
+      this.currentFeaturedIndex = (Math.max(0, currentIndex) + 1) % total;
+      this.featuredImageFailed = false;
+      if (manual) this.restartFeaturedAutoplay();
+    },
+
+    previousFeatured() {
+      const total = this.featuredGames.length;
+      if (!total) return;
+
+      const currentIndex = this.featuredGames.findIndex(game => game.id === this.currentFeaturedGame.id);
+      this.currentFeaturedIndex = (Math.max(0, currentIndex) - 1 + total) % total;
+      this.featuredImageFailed = false;
+      this.restartFeaturedAutoplay();
+    },
+
+    selectFeatured(index) {
+      if (index < 0 || index >= this.featuredGames.length) return;
+
+      this.currentFeaturedIndex = index;
+      this.featuredImageFailed = false;
+      this.restartFeaturedAutoplay();
+    },
+
+    pauseFeaturedAutoplay() {
+      this.featuredPaused = true;
+      this.stopFeaturedAutoplay();
+    },
+
+    resumeFeaturedAutoplay() {
+      this.featuredPaused = false;
+      this.startFeaturedAutoplay();
+    },
+
+    markFeaturedCoverError(gameId) {
+      if (!this.featuredCoverErrors.includes(gameId)) {
+        this.featuredCoverErrors.push(gameId);
+      }
+    },
+
     openGame(game) {
       this.selectedGame = game;
       this.reviews = [];
