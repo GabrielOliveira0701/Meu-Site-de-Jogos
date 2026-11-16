@@ -1,0 +1,758 @@
+<!doctype html>
+
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>REINO DAS SOMBRAS — ALCATECH GAMES</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --c: #67e8f9;
+      --v: #a78bfa
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: #06070d;
+      color: #f4f4f5;
+      font: 14px system-ui, Segoe UI, sans-serif;
+      display: flex;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      padding: 12px
+    }
+
+    .shell {
+      width: min(1100px, 100%)
+    }
+
+    .brand {
+      font-weight: 900;
+      letter-spacing: .14em;
+      color: var(--c)
+    }
+
+    .sub {
+      color: #9ca3af;
+      font-size: 12px
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .stage {
+      position: relative;
+      border: 1px solid #2a2347;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #0a0a14;
+      box-shadow: 0 0 60px #7c3aed22
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+      touch-action: none
+    }
+
+    .ov {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #04050bdd;
+      padding: 16px;
+      text-align: center
+    }
+
+    .panel {
+      max-width: 540px;
+      width: 100%;
+      background: #0d0d1b;
+      border: 1px solid #3b2f66;
+      border-radius: 16px;
+      padding: 22px
+    }
+
+    .panel h1 {
+      font-size: clamp(26px, 5vw, 44px);
+      margin: 4px 0;
+      letter-spacing: .1em;
+      color: #e9e2ff
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      color: #e9e2ff
+    }
+
+    .panel p {
+      color: #cbd5e1;
+      line-height: 1.55
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      background: var(--c);
+      color: #071016;
+      font-weight: 900;
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 16px;
+      cursor: pointer;
+      margin: 7px 0
+    }
+
+    .btn.s {
+      background: #1d1a35;
+      color: #e5e7eb;
+      border: 1px solid #4c3f86
+    }
+
+    .btn:disabled {
+      opacity: .35;
+      cursor: not-allowed
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px
+    }
+
+    td {
+      padding: 4px 6px;
+      border-bottom: 1px solid #2a2347
+    }
+
+    .k {
+      border: 1px solid #4c3f86;
+      border-bottom-width: 3px;
+      border-radius: 5px;
+      padding: 1px 6px;
+      color: #e2e8f0
+    }
+
+    .msg {
+      color: var(--c);
+      min-height: 22px;
+      font-weight: 700;
+      margin-top: 6px
+    }
+
+    .ctl {
+      margin-top: 8px;
+      color: #aab4c3;
+      font-size: 12px
+    }
+
+    .mob {
+      display: none;
+      gap: 6px;
+      margin-top: 8px
+    }
+
+    .mob button {
+      flex: 1;
+      min-height: 46px;
+      border: 1px solid #3b2f66;
+      background: #151229;
+      color: #e2e8f0;
+      border-radius: 10px;
+      font-weight: 800;
+      touch-action: none
+    }
+
+    @media(max-width:700px) {
+      .mob {
+        display: flex
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="shell">
+
+    <div class="top">
+      <div>
+        <div class="brand">ALCATECH GAMES</div>
+        <div class="sub">AÇÃO E AVENTURA 2D · FANTASIA SOMBRIA</div>
+      </div>
+      <div class="sub">Capítulo I — A Cripta</div>
+    </div>
+
+    <div class="stage"><canvas id="g" width="480" height="270"></canvas>
+
+      <div id="menu" class="ov">
+        <div class="panel">
+          <div class="brand">ALCATECH GAMES APRESENTA</div>
+          <h1>REINO DAS SOMBRAS</h1>
+
+          <p id="mtxt">Elden, o Portador da Última Brasa, desperta numa cripta amaldiçoada. Encontre a Relíquia do Salto
+            Duplo, volte aos lugares altos e derrote o Guardião Cinzento.</p>
+
+          <button class="btn" id="bNew">NOVO JOGO</button><button class="btn s" id="bCont">CONTINUAR</button><button
+            class="btn s" id="bCred">CRÉDITOS</button>
+        </div>
+      </div>
+
+      <div id="pause" class="ov" style="display:none">
+        <div class="panel">
+
+          <div id="pMain">
+            <h2>PAUSADO</h2><button class="btn" id="pRes">CONTINUAR</button><button class="btn s" id="pRst">REINICIAR
+              FASE</button><button class="btn s" id="pSet">CONFIGURAÇÕES</button><button class="btn s"
+              id="pCtl">CONTROLES</button><button class="btn s" id="pMenu">VOLTAR AO MENU PRINCIPAL</button>
+          </div>
+
+          <div id="pSetv" style="display:none">
+            <h2>CONFIGURAÇÕES</h2><button class="btn s" id="oSnd">SOM: LIGADO</button><button class="btn s"
+              id="oShk">TREMOR DE TELA: LIGADO</button><button class="btn" data-back>VOLTAR</button>
+          </div>
+
+          <div id="pCtlv" style="display:none">
+            <h2>CONTROLES</h2>
+            <table>
+
+              <tr>
+                <td><span class="k">A</span> <span class="k">D</span></td>
+                <td>Mover (segure para correr)</td>
+              </tr>
+              <tr>
+                <td><span class="k">W</span></td>
+                <td>Pular (2× com a relíquia)</td>
+              </tr>
+              <tr>
+                <td><span class="k">S</span></td>
+                <td>Agachar</td>
+              </tr>
+
+              <tr>
+                <td><span class="k">J</span></td>
+                <td>Espada (combo de 3 golpes)</td>
+              </tr>
+              <tr>
+                <td><span class="k">K</span></td>
+                <td>Dash</td>
+              </tr>
+              <tr>
+                <td><span class="k">L</span></td>
+                <td>Magia (gasta mana)</td>
+              </tr>
+              <tr>
+                <td><span class="k">P</span></td>
+                <td>Pausar</td>
+              </tr>
+            </table>
+
+            <button class="btn" data-back>VOLTAR</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="end" class="ov" style="display:none">
+        <div class="panel">
+          <div class="brand">REINO DAS SOMBRAS</div>
+          <h1 id="eT"></h1>
+          <p id="eP"></p><button class="btn" id="bAgain">VOLTAR AO MENU</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="ctl"><span class="k">A</span><span class="k">D</span> mover · <span class="k">W</span> pular · <span
+        class="k">S</span> agachar · <span class="k">J</span> espada · <span class="k">K</span> dash · <span
+        class="k">L</span> magia · <span class="k">P</span> pausa</div>
+
+    <div class="mob"><button data-k="KeyA">◀</button><button data-k="KeyD">▶</button><button
+        data-k="KeyS">▼</button><button data-k="KeyW">PULAR</button><button data-k="KeyJ">⚔</button><button
+        data-k="KeyK">DASH</button><button data-k="KeyL">✦</button></div>
+
+    <div class="msg" id="msg" aria-live="polite"></div>
+
+  </main>
+
+  <script>
+
+    (() => {
+
+      /* ================= CONFIGURAÇÃO CENTRAL ================= */
+
+      const CFG = {
+        W: 480, H: 270, GY: 227, WW: 1500, grav: 550, walk: 105, run: 130, jump: 225, coyote: .1, buf: .12, hp: 6, mana: 100, manaRegen: 2.5,
+
+        dash: { t: .15, v: 300, cd: .7, inv: .2 }, combo: .35,
+
+        sword: [{ d: 1, t: .22, r: 26, kb: 70 }, { d: 1, t: .22, r: 26, kb: 70 }, { d: 2, t: .32, r: 34, kb: 120 }],
+
+        hurt: { inv: 1, t: .3 }, save: 'alcatech_reino_sombras_v1'
+      };
+
+      /* Magias: adicione novas entradas (fogo, gelo, raio...) para expandir */
+
+      const SPELLS = [{ id: 'arcane', cost: 20, dmg: 2, v: 260, life: 1.2, cd: .35, c: '#67e8f9' }];
+
+      const { W, H, GY, WW } = CFG, $ = id => document.getElementById(id);
+
+      const cv = $('g'), ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+
+      const opt = { snd: true, shk: true };
+
+      /* ================= ÁUDIO ================= */
+
+      let AC; function snd(f, d = .08, t = 'square', v = .04, s = 0) { if (!opt.snd) return; try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const o = AC.createOscillator(), g = AC.createGain(), n = AC.currentTime; o.type = t; o.frequency.setValueAtTime(f, n); if (s) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + s), n + d); g.gain.setValueAtTime(v, n); g.gain.exponentialRampToValueAtTime(.001, n + d); o.connect(g).connect(AC.destination); o.start(); o.stop(n + d) } catch (e) { } }
+
+      /* ================= NÍVEL ================= */
+
+      const PL = [[0, GY, 295], [325, GY, 205], [560, GY, 200], [950, GY, 550], [142, 185, 50], [227, 157, 55], [260, 100, 45], [380, 185, 60], [480, 155, 55], [630, 185, 62], [730, 150, 30], [960, 185, 65], [1040, 150, 55]].map(a => ({ x: a[0], y: a[1], w: a[2], h: a[1] === GY ? H - GY : 8 }));
+
+      const SHR = [45, 450, 650, 985, 1215];
+
+      const store = {
+        get() {
+          try {
+            const raw = localStorage.getItem(CFG.save); if (!raw) return null;
+            const v = JSON.parse(raw);
+            if (!v || typeof v !== 'object' || !Number.isFinite(v.cp) || v.cp < 0 || v.cp > WW ||
+              !Array.isArray(v.got) || v.got.length !== 4) return null;
+            return {
+              cp: v.cp, relic: v.relic === true, bossDead: v.bossDead === true,
+              got: v.got.map(x => x === true || x === 1 ? 1 : 0),
+              maxHp: Number.isFinite(v.maxHp) ? Math.max(CFG.hp, Math.min(12, Math.floor(v.maxHp))) : CFG.hp
+            };
+          } catch (e) { return null }
+        },
+        set() { try { localStorage.setItem(CFG.save, JSON.stringify(S)) } catch (e) { say('Não foi possível salvar neste navegador.') } },
+        del() { try { localStorage.removeItem(CFG.save) } catch (e) { } }
+      };
+
+      /* ================= ESTADO ================= */
+
+      let S, P, en, cr, sp, eo, pt, amb, trail, cam = 0, T = 0, hs = 0, shake = 0, fade = 1, mt = 0, fr = 0, last = 0;
+
+      let running = false, paused = false, done = false, held = {}, press = {};
+
+      const say = t => { $('msg').textContent = t; mt = 2.5 };
+
+      function mkE(k, x, y, home) {
+        const d = { m: { w: 14, h: 20, hp: 3, sp: 48, dmg: 1, pr: 34 }, r: { w: 14, h: 20, hp: 2, sp: 0, dmg: 1, pr: 0 }, t: { w: 22, h: 26, hp: 8, sp: 28, dmg: 2, pr: 24 }, b: { w: 36, h: 48, hp: 24, sp: 44, dmg: 2, pr: 0 } }[k];
+
+        return Object.assign({ k, x, y, home: home || x, face: -1, cd: 1, wind: 0, flash: 0, kb: 0, kbv: 0, dead: false, dt: .4, lg: false, lunge: 0, orb: 0, mhp: d.hp }, d)
+      }
+
+      function load(fresh) {
+
+        const sv = fresh ? null : store.get(); S = sv || { cp: 45, relic: false, bossDead: false, got: [0, 0, 0, 0], maxHp: CFG.hp };
+
+        P = {
+          x: S.cp - 6, y: GY - 24, w: 12, h: 24, vx: 0, vy: 0, face: 1, hp: S.maxHp, mana: CFG.mana, gr: false, dj: false, coy: 0, buf: 0, run: 0, st: 'idle',
+
+          atk: 0, adur: .2, n: 0, combo: 0, bufA: 0, hit: null, dash: 0, dcd: 0, inv: 0, hurt: 0, cast: 0, mcd: 0, dth: 0, crouch: false
+        };
+
+        en = [mkE('m', 190, 207), mkE('m', 405, 165), mkE('m', 690, 207), mkE('m', 1000, 207), mkE('r', 262, 207), mkE('r', 610, 207), mkE('r', 1070, 130), mkE('t', 1100, 201)];
+
+        if (!S.bossDead) { const b = mkE('b', 1380, 179); b.boss = true; en.push(b) }
+
+        cr = [[165, 168, 0], [330, 212, 1], [282, 85, 2], [1067, 135, 3]].map(c => ({ x: c[0], y: c[1], i: c[2], taken: !!S.got[c[2]] }));
+
+        sp = []; eo = []; pt = []; trail = []; cam = 0; fade = 1; done = false;
+
+        amb = Array.from({ length: 36 }, (_, i) => ({ x: Math.random() * W, y: Math.random() * H, s: .3 + Math.random(), p: i }));
+
+      }
+
+      function fx(x, y, c, n, sp2 = 90) { for (let i = 0; i < n; i++)pt.push({ x, y, vx: (Math.random() - .5) * sp2 * 2, vy: (Math.random() - .8) * sp2, l: .25 + Math.random() * .4, c, s: 1 + Math.random() * 2 }) }
+
+      /* ================= FLUXO ================= */
+
+      function setPause(v) { if (!running || done) return; paused = v; $('pause').style.display = v ? 'flex' : 'none'; sub('pMain') }
+
+      function sub(id) { ['pMain', 'pSetv', 'pCtlv'].forEach(x => $(x).style.display = x === id ? 'block' : 'none') }
+
+      function start(fresh) { if (fresh) store.del(); load(fresh); S.cp = S.cp || 45; if (fresh) store.set(); $('menu').style.display = 'none'; $('end').style.display = 'none'; $('pause').style.display = 'none'; paused = false; running = true; last = performance.now(); say(fresh ? 'Elden desperta na cripta...' : 'Progresso carregado.'); requestAnimationFrame(loop) }
+
+      function menu() { running = false; paused = false; $('pause').style.display = 'none'; $('end').style.display = 'none'; $('menu').style.display = 'flex'; $('bCont').disabled = !store.get() }
+
+      $('bNew').onclick = () => start(true); $('bCont').onclick = () => start(false); $('bAgain').onclick = menu;
+
+      $('bCred').onclick = () => { $('mtxt').textContent = 'REINO DAS SOMBRAS é um jogo original da ALCATECH GAMES. Arte desenhada por código, áudio sintetizado no navegador e mecânicas criadas do zero.' };
+
+      $('pRes').onclick = () => setPause(false); $('pRst').onclick = () => { load(false); setPause(false); say('Fase reiniciada a partir do último progresso salvo.') }; $('pSet').onclick = () => sub('pSetv'); $('pCtl').onclick = () => sub('pCtlv'); $('pMenu').onclick = menu;
+
+      document.querySelectorAll('[data-back]').forEach(b => b.onclick = () => sub('pMain'));
+
+      $('oSnd').onclick = e => { opt.snd = !opt.snd; e.target.textContent = 'SOM: ' + (opt.snd ? 'LIGADO' : 'DESLIGADO') };
+
+      $('oShk').onclick = e => { opt.shk = !opt.shk; e.target.textContent = 'TREMOR DE TELA: ' + (opt.shk ? 'LIGADO' : 'DESLIGADO') };
+
+      function win() { done = true; store.del(); $('eT').textContent = 'O PORTAL SE ABRE'; $('eP').textContent = 'Elden atravessou o portal. Esta é apenas a primeira região do Reino das Sombras. Fragmentos: ' + S.got.filter(Boolean).length + '/4.'; $('end').style.display = 'flex' }
+
+      /* ================= ENTRADA (teclas pressionadas e liberadas) ================= */
+
+      const GK = ['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+
+      addEventListener('keydown', e => { if (GK.includes(e.code)) e.preventDefault(); if (e.repeat) return; held[e.code] = true; press[e.code] = true; if (e.code === 'KeyP' || e.code === 'Escape') setPause(!paused) });
+
+      addEventListener('keyup', e => { held[e.code] = false; if (P && ['KeyW', 'ArrowUp', 'Space'].includes(e.code) && P.vy < -80) P.vy *= .5 });
+
+      addEventListener('blur', () => { held = {}; press = {}; setPause(true) });
+
+      document.querySelectorAll('[data-k]').forEach(b => { const c = b.dataset.k; b.addEventListener('pointerdown', e => { e.preventDefault(); held[c] = true; press[c] = true });['pointerup', 'pointercancel', 'pointerleave'].forEach(t => b.addEventListener(t, () => { held[c] = false; if (c === 'KeyW' && P && P.vy < -80) P.vy *= .5 })) });
+
+      const dn = a => a.some(c => held[c]), pr = a => a.some(c => press[c]);
+
+      const K = { L: ['KeyA', 'ArrowLeft'], R: ['KeyD', 'ArrowRight'], J: ['KeyW', 'ArrowUp', 'Space'], S: ['KeyS', 'ArrowDown'] };
+
+      /* ================= LÓGICA ================= */
+
+      const hb = () => P.crouch ? { x: P.x, y: P.y + 10, w: P.w, h: 14 } : { x: P.x, y: P.y, w: P.w, h: P.h };
+
+      const ov = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+
+      function hurtP(d, sx) { const p = P; if (p.inv > 0 || p.dth > 0) return; p.hp -= d; p.inv = CFG.hurt.inv; p.hurt = CFG.hurt.t; p.vx = (p.x < sx ? -1 : 1) * 110; p.vy = -100; p.atk = 0; p.dash = 0; if (opt.shk) shake = 5; snd(120, .2, 'sawtooth', .06, -60); fx(p.x + 6, p.y + 10, '#fb7185', 10); if (p.hp <= 0) { p.hp = 0; p.dth = .9; snd(80, .6, 'sawtooth', .07, -40) } }
+
+      function hitE(e, d, kb, dir) {
+        if (e.dead) return; e.hp -= d; e.flash = .12; hs = .05; if (!e.boss && e.k !== 't') { e.kb = .15; e.kbv = dir * kb } fx(e.x + e.w / 2, e.y + e.h / 2, '#fb923c', 8); snd(260, .07, 'square', .05, -120);
+
+        if (e.hp <= 0) {
+          e.dead = true; e.dt = .45; P.mana = Math.min(CFG.mana, P.mana + 8); fx(e.x + e.w / 2, e.y + e.h / 2, '#a78bfa', 20); snd(90, .3, 'sawtooth', .06, -40);
+
+          if (e.boss) { S.bossDead = true; store.set(); say('O Guardião Cinzento caiu! O portal despertou.') }
+        }
+      }
+
+      function orb(x, y, vx, vy) { eo.push({ x, y, vx, vy, l: 3 }) }
+
+      function respawn() {
+        const p = P; p.x = S.cp - 6; p.y = GY - 24; p.vx = p.vy = 0; p.hp = S.maxHp; p.mana = CFG.mana; p.dth = 0; p.inv = 1; p.hurt = 0; fade = 1; sp = []; eo = [];
+
+        const b = en.find(e => e.boss); if (b && !b.dead) { b.hp = b.mhp; b.x = 1380; b.on = false }
+      }
+
+      function update(dt) {
+
+        if (hs > 0) { hs -= dt; return }
+
+        T += dt; fr++; const p = P;
+
+        for (const k of ['dcd', 'inv', 'hurt', 'cast', 'mcd', 'bufA', 'combo', 'coy', 'buf']) p[k] = Math.max(0, p[k] - dt);
+
+        fade = Math.max(0, fade - dt * 1.5); if (mt > 0 && (mt -= dt) <= 0) $('msg').textContent = '';
+
+        const L = dn(K.L), R = dn(K.R), dead = p.dth > 0;
+
+        if (dead) { p.dth -= dt; p.vx *= .9; if (p.dth <= 0) respawn() }
+
+        /* crouch */
+
+        p.crouch = !dead && p.gr && dn(K.S) && p.atk <= 0 && p.dash <= 0;
+
+        /* movimento horizontal */
+
+        if (!dead && p.hurt <= 0 && p.dash <= 0) {
+          const mv = (R ? 1 : 0) - (L ? 1 : 0);
+
+          if (mv) { p.face = mv; p.run += dt } else p.run = 0;
+
+          const v = p.crouch ? 0 : (p.run > .4 ? CFG.run : CFG.walk) * (p.atk > 0 && p.gr ? .4 : 1); p.vx = mv * v
+        }
+
+        /* pulo (buffer + coyote + duplo) */
+
+        if (pr(K.J)) p.buf = CFG.buf;
+
+        if (!dead && p.buf > 0 && p.hurt <= 0) {
+
+          if (p.coy > 0) { p.vy = -CFG.jump; p.coy = 0; p.buf = 0; p.gr = false; snd(300, .1, 'square', .04, 200); fx(p.x + 6, p.y + 24, '#67e8f9', 5, 40) }
+
+          else if (S.relic && !p.dj && !p.gr) { p.dj = true; p.vy = -CFG.jump * .95; p.buf = 0; snd(420, .12, 'square', .05, 260); fx(p.x + 6, p.y + 24, '#a78bfa', 14, 60) }
+        }
+
+        /* dash */
+
+        if (!dead && pr(['KeyK']) && p.dcd <= 0 && p.hurt <= 0 && !p.crouch) { p.dash = CFG.dash.t; p.dcd = CFG.dash.cd; p.inv = Math.max(p.inv, CFG.dash.inv); p.atk = 0; p.vx = p.face * CFG.dash.v; snd(200, .12, 'sawtooth', .04, 300) }
+
+        if (p.dash > 0) { p.dash -= dt; p.vx = p.face * CFG.dash.v; trail.push({ x: p.x, y: p.y, f: p.face, l: .25 }); if (p.dash <= 0) p.vx = 0 }
+
+        /* espada: combo de até 3 golpes */
+
+        if (pr(['KeyJ'])) p.bufA = .2;
+
+        if (!dead && p.bufA > 0 && p.atk <= 0 && p.dash <= 0 && p.hurt <= 0 && !p.crouch) {
+
+          p.n = p.combo > 0 ? (p.n + 1) % 3 : 0; const s = CFG.sword[p.n]; p.adur = s.t; p.atk = s.t; p.bufA = 0; p.hit = new Set(); snd(380 + p.n * 60, .08, 'triangle', .05, -100)
+        }
+
+        if (p.atk > 0) {
+          const s = CFG.sword[p.n], k = 1 - p.atk / p.adur; p.atk -= dt; if (p.atk <= 0) p.combo = CFG.combo;
+
+          if (k > .25 && k < .85) {
+            const bx = p.face > 0 ? p.x + p.w : p.x - s.r; const box = { x: bx, y: p.y + 2, w: s.r, h: p.h - 6 };
+
+            for (const e of en) if (!e.dead && !p.hit.has(e) && ov(box, e)) { p.hit.add(e); hitE(e, s.d, s.kb, p.face); fx(e.x + e.w / 2, e.y + 8, '#e2f4f8', 6) }
+          }
+        }
+
+        /* magia */
+
+        if (!dead && pr(['KeyL']) && p.mcd <= 0 && p.hurt <= 0) {
+          const m = SPELLS[0];
+
+          if (p.mana >= m.cost) { p.mana -= m.cost; p.cast = .22; p.mcd = m.cd; sp.push({ x: p.x + (p.face > 0 ? p.w : -4), y: p.y + (p.crouch ? 14 : 9), vx: p.face * m.v, l: m.life, m }); snd(520, .15, 'sine', .06, 300) }
+
+          else { say('Mana insuficiente!'); snd(110, .12, 'square', .04) }
+        }
+
+        p.mana = Math.min(CFG.mana, p.mana + CFG.manaRegen * dt);
+
+        /* física */
+
+        p.vy = p.dash > 0 ? 0 : Math.min(420, p.vy + CFG.grav * dt); p.x += p.vx * dt; p.y += p.vy * dt;
+
+        p.x = Math.max(0, Math.min(S.bossDead ? WW - p.w : 1455, p.x)); p.gr = false;
+
+        for (const pl of PL) if (p.x + p.w > pl.x && p.x < pl.x + pl.w && p.vy >= 0 && p.y + p.h >= pl.y && p.y + p.h - p.vy * dt <= pl.y + 4) { p.y = pl.y - p.h; p.vy = 0; p.gr = true; p.dj = false }
+
+        if (p.gr) p.coy = CFG.coyote;
+
+        if (p.y > H + 80 && !dead) { p.hp = Math.max(1, p.hp - 1); respawn(); say('Elden caiu no abismo.') }
+
+        /* estado (máquina de estados) */
+
+        p.st = dead ? 'death' : p.hurt > 0 ? 'hurt' : p.dash > 0 ? 'dash' : p.atk > 0 ? 'attack' : p.cast > 0 ? 'cast' : !p.gr ? (p.vy < 0 ? 'jump' : 'fall') : p.crouch ? 'crouch' : Math.abs(p.vx) > 1 ? (p.run > .4 ? 'run' : 'walk') : 'idle';
+
+        /* inimigos */
+
+        for (const e of en) {
+
+          if (e.dead) { e.dt -= dt; continue }
+
+          e.flash -= dt; e.cd -= dt; if (e.kb > 0) { e.kb -= dt; e.x += e.kbv * dt; continue }
+
+          const dx = p.x + 6 - (e.x + e.w / 2), ady = Math.abs(p.y + 12 - (e.y + e.h / 2)), near = Math.abs(dx) < (e.k === 'r' ? 170 : e.boss ? 260 : 95) && ady < 55, reach = e.w / 2 + (e.k === 't' || e.boss ? 20 : 12);
+
+          if (e.boss && near && !e.on) { e.on = true; say('GUARDIÃO CINZENTO!') }
+
+          if (e.boss && !e.on) continue;
+
+          if (e.lunge > 0) { e.lunge -= dt; e.x += e.face * 210 * dt; if (Math.abs(dx) < e.w / 2 + 8 && ady < 30) hurtP(2, e.x + e.w / 2); continue }
+
+          if (e.wind > 0) {
+            e.wind -= dt; if (e.wind <= 0) {
+
+              if (e.k === 'r') orb(e.x + 7, e.y + 9, e.face * 110, 0);
+
+              else if (e.lg) { e.lunge = .45; e.lg = false }
+
+              else if (Math.abs(dx) < reach + 4 && ady < 28) hurtP(e.dmg, e.x + e.w / 2);
+
+              e.cd = e.boss ? 1.2 : e.k === 'r' ? 2.2 : 1.4
+            } continue
+          }
+
+          if (e.k === 'r') { if (near) { e.face = dx > 0 ? 1 : -1; if (e.cd <= 0) e.wind = .5 } continue }
+
+          if (near) {
+            e.face = dx > 0 ? 1 : -1; if (Math.abs(dx) > reach) e.x += e.face * e.sp * dt; else if (e.cd <= 0) e.wind = e.k === 't' || e.boss ? .55 : .35;
+
+            if (e.boss && e.cd <= 0 && Math.abs(dx) > 50) { e.lg = true; e.wind = .6 }
+
+            if (e.boss && e.hp <= 12) { e.orb -= dt; if (e.orb <= 0) { e.orb = 2; const a = Math.atan2(p.y + 10 - (e.y + 14), dx); orb(e.x + 18, e.y + 14, Math.cos(a) * 130, Math.sin(a) * 130) } }
+          }
+
+          else if (e.pr) { e.x += e.face * e.sp * .5 * dt; if (Math.abs(e.x - e.home) > e.pr) e.face *= -1 }
+
+          if (e.boss) e.x = Math.max(1225, Math.min(1455, e.x))
+        }
+
+        en = en.filter(e => !e.dead || e.dt > 0);
+
+        /* projéteis */
+
+        for (const s of sp) {
+          s.x += s.vx * dt; s.l -= dt; const b = { x: s.x - 3, y: s.y - 3, w: 6, h: 6 };
+
+          for (const e of en) if (!e.dead && ov(b, e)) { hitE(e, s.m.dmg, 60, Math.sign(s.vx)); s.l = 0; fx(s.x, s.y, s.m.c, 10); break }
+
+          pt.push({ x: s.x, y: s.y + (Math.random() - .5) * 3, vx: 0, vy: 0, l: .25, c: s.m.c, s: 2 })
+        }
+
+        sp = sp.filter(s => s.l > 0);
+
+        for (const o of eo) { o.x += o.vx * dt; o.y += o.vy * dt; o.l -= dt; if (ov({ x: o.x - 3, y: o.y - 3, w: 6, h: 6 }, hb())) { o.l = 0; hurtP(1, o.x) } } eo = eo.filter(o => o.l > 0);
+
+        /* itens e santuários */
+
+        for (const c of cr) if (!c.taken && Math.abs(p.x + 6 - c.x) < 14 && Math.abs(p.y + 12 - c.y) < 22) { c.taken = true; S.got[c.i] = 1; p.mana = CFG.mana; snd(700, .15, 'sine', .06, 300); fx(c.x, c.y, '#67e8f9', 12); if (c.i === 2) { S.maxHp++; p.hp = S.maxHp; say('Fragmento secreto! Vida máxima aumentada.') } else say('Fragmento de Éter! Mana restaurada.'); store.set() }
+
+        if (!S.relic && Math.abs(p.x + 6 - 507) < 16 && Math.abs(p.y + 12 - 139) < 26) { S.relic = true; say('Relíquia do Salto Duplo! Salte novamente no ar.'); fx(507, 139, '#fb923c', 30); snd(500, .4, 'triangle', .07, 400); store.set() }
+
+        for (const x of SHR) if (S.cp !== x && x > S.cp && Math.abs(p.x + 6 - x) < 18 && p.gr) { S.cp = x; p.hp = S.maxHp; p.mana = CFG.mana; store.set(); say('Santuário ativado: progresso salvo.'); fx(x, GY - 30, '#67e8f9', 20); snd(600, .25, 'sine', .06, 200) }
+
+        if (S.bossDead && p.x > 1465) win();
+
+        for (const q of pt) { q.x += q.vx * dt; q.y += q.vy * dt; q.vy += 90 * dt; q.l -= dt } pt = pt.filter(q => q.l > 0);
+
+        for (const t of trail) t.l -= dt; trail = trail.filter(t => t.l > 0);
+
+        shake = Math.max(0, shake - dt * 20);
+
+        cam = Math.max(0, Math.min(WW - W, p.x - W * .4));
+
+        for (const a of amb) { a.y -= a.s * 8 * dt; a.x += Math.sin(T + a.p) * 6 * dt; if (a.y < 0) { a.y = H; a.x = Math.random() * W } }
+
+        for (const k in press) press[k] = false
+      }
+
+      /* ================= RENDERIZAÇÃO (pixel art procedural) ================= */
+
+      const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)) };
+
+      const vg = document.createElement('canvas'); vg.width = W; vg.height = H; { const g = vg.getContext('2d'), r = g.createRadialGradient(W / 2, H / 2, H * .35, W / 2, H / 2, W * .62); r.addColorStop(0, 'rgba(0,0,0,0)'); r.addColorStop(1, 'rgba(2,2,10,.75)'); g.fillStyle = r; g.fillRect(0, 0, W, H) }
+
+      function glow(x, y, r, c, a) { const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, c); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.globalAlpha = a; ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); ctx.globalAlpha = 1 }
+
+      function bg() {
+        const s = ctx.createLinearGradient(0, 0, 0, H); s.addColorStop(0, '#05060f'); s.addColorStop(.6, '#12112a'); s.addColorStop(1, '#241635'); ctx.fillStyle = s; ctx.fillRect(0, 0, W, H);
+
+        for (let i = 0; i < 40; i++)R((i * 97) % W, (i * 53) % 140, 1, 1, (fr + i * 9) % 80 < 40 ? '#c7d2fe' : '#6366f1');
+
+        ctx.fillStyle = '#e0f2fe'; ctx.beginPath(); ctx.arc(380 - cam * .03, 45, 13, 0, 7); ctx.fill(); ctx.fillStyle = '#12112a'; ctx.beginPath(); ctx.arc(386 - cam * .03, 42, 11, 0, 7); ctx.fill(); glow(380 - cam * .03, 45, 60, '#67e8f9', .18);
+
+        let w = 170, o = cam * .1; for (let i = -1; i <= 3; i++) { const k = Math.floor(o / w) + i, x = k * w - o, r = ((k % 5) + 5) % 5; R(x + 10, 150 - r * 12, 34, H, '#0d0e20'); for (let j = 0; j < 3; j++)R(x + 10 + j * 13, 146 - r * 12, 8, 5, '#0d0e20'); R(x + 44, 190, w - 44, H, '#0a0b1a'); if (k % 2) R(x + 22, 170 - r * 12, 4, 8, '#7c3aed') }
+
+        w = 110; o = cam * .35; for (let i = -1; i <= 5; i++) { const k = Math.floor(o / w) + i, x = k * w - o; if (((k % 3) + 3) % 3 === 0) { R(x + 10, 165, 7, H, '#15122b'); R(x + 52, 165, 7, H, '#15122b'); R(x + 8, 160, 53, 7, '#15122b'); R(x + 20, 150, 28, 10, '#15122b') } else if (k % 3 === 1 || k % 3 === -2) { R(x + 60, 175, 4, H, '#14102a'); R(x + 55, 182, 5, 2, '#14102a'); R(x + 64, 178, 8, 2, '#14102a'); R(x + 52, 170, 4, 2, '#14102a') } }
+      }
+
+      function plats() {
+        for (const p of PL) {
+          const x = p.x - cam; if (x + p.w < 0 || x > W) continue; const a = Math.max(0, -x), b = Math.min(p.w, W - x); R(x + a, p.y, b - a, p.h, '#1d1f35'); R(x + a, p.y, b - a, 2, '#5b6580'); R(x + a, p.y + 2, b - a, 1, '#2c3050');
+
+          for (let yy = p.y + 5, r = 0; yy < p.y + p.h && yy < H; yy += 6, r++) { R(x + a, yy, b - a, 1, '#141628'); for (let j = a - (a % 12) + (r % 2) * 6; j < b; j += 12)if (j >= a) R(x + j, yy - 5, 1, 5, '#141628') }
+        }
+      }
+
+      function actors() {
+
+        for (const x of SHR) { const sx = x - cam, on = S.cp === x; R(sx - 4, GY - 26, 8, 26, '#262a44'); R(sx - 7, GY - 30, 14, 4, on ? '#67e8f9' : '#475569'); R(sx - 1, GY - 38, 2, 8, on ? '#67e8f9' : '#475569'); if (on) glow(sx, GY - 34, 36, '#67e8f9', .5) }
+
+        if (!S.relic) { const x = 507 - cam, y = 139 + Math.sin(T * 3) * 2; glow(x, y, 26, '#fb923c', .6); ctx.fillStyle = '#fb923c'; ctx.beginPath(); ctx.arc(x, y, 5, 0, 7); ctx.fill(); R(x - 1, y - 3, 2, 6, '#fff6') }
+
+        for (const c of cr) { if (c.taken) continue; const x = c.x - cam, y = c.y + Math.sin(T * 3 + c.i) * 2; glow(x, y, 16, '#67e8f9', .5); ctx.fillStyle = '#67e8f9'; ctx.beginPath(); ctx.moveTo(x, y - 6); ctx.lineTo(x + 4, y); ctx.lineTo(x, y + 6); ctx.lineTo(x - 4, y); ctx.fill() }
+
+        const px = 1485 - cam; R(px - 10, GY - 52, 30, 52, '#0d1020'); R(px - 4, GY - 46, 18, 46, S.bossDead ? '#164e63' : '#070913'); if (S.bossDead) { glow(px + 5, GY - 24, 40, '#67e8f9', .7); R(px + 1, GY - 40, 8, 38, '#67e8f9') }
+
+        for (const e of en) {
+          const x = e.x - cam, y = e.y, f = e.face, al = e.dead ? Math.max(0, e.dt / .45) : 1; ctx.globalAlpha = al; const c = e.flash > 0;
+
+          if (e.k === 'm') {
+            const lg = Math.round(Math.sin(T * 8 + e.home) * 1.5); R(x + 3, y + 8, 8, 9, c ? '#fff' : '#4a2b3a'); R(x + 2, y + 1, 10, 9, c ? '#fff' : '#2a1c2e'); R(x + (f > 0 ? 7 : 3), y + 4, 3, 2, '#ffb36b'); R(x + 3 + lg, y + 17, 3, 3, '#1a1a24'); R(x + 8 - lg, y + 17, 3, 3, '#1a1a24');
+
+            const w = e.wind > 0 ? -6 : 0; R(f > 0 ? x + 11 + w : x - 4 - w, y + 8, 6, 2, '#9ca3af')
+          }
+
+          else if (e.k === 'r') { R(x + 3, y + 7, 8, 13, c ? '#fff' : '#3b2a5c'); R(x + 2, y + 1, 10, 8, c ? '#fff' : '#241a3d'); R(x + (f > 0 ? 7 : 3), y + 4, 3, 2, '#c4b5fd'); R(f > 0 ? x + 12 : x - 2, y + 2, 2, 16, '#6b5b7b'); const gl = e.wind > 0 ? 5 : 3; glow(f > 0 ? x + 13 : x - 1, y + 2, 12, '#a78bfa', .8); ctx.fillStyle = '#c4b5fd'; ctx.beginPath(); ctx.arc(f > 0 ? x + 13 : x - 1, y + 2, gl * .6, 0, 7); ctx.fill() }
+
+          else { const s = e.boss ? 1.65 : 1, fl = e.wind > 0 && fr % 6 < 3; ctx.save(); ctx.translate(x + e.w / 2, y + e.h); ctx.scale(s, s); const cc = c || fl ? '#fff' : e.boss ? '#2e2540' : '#3a3f4d'; R(-11, -26, 22, 20, cc); R(-8, -30, 16, 10, c || fl ? '#fff' : '#222636'); R(f > 0 ? 1 : -6, -26, 5, 3, '#ff4d4d'); R(-12, -8, 9, 8, '#1b1d28'); R(3, -8, 9, 8, '#1b1d28'); R(f > 0 ? 11 : -17, -24, 6, 3, '#9ca3af'); R(-9, -33, 3, 5, '#555a70'); R(6, -33, 3, 5, '#555a70'); ctx.restore() }
+
+          ctx.globalAlpha = 1; if (!e.dead && e.hp < e.mhp && !e.boss) { R(x, y - 5, e.w, 2, '#2a1220'); R(x, y - 5, e.w * e.hp / e.mhp, 2, '#fb7185') }
+        }
+
+        for (const o of eo) { glow(o.x - cam, o.y, 10, '#c084fc', .9); ctx.fillStyle = '#e9d5ff'; ctx.beginPath(); ctx.arc(o.x - cam, o.y, 3, 0, 7); ctx.fill() }
+
+        for (const s of sp) { glow(s.x - cam, s.y, 14, s.m.c, .9); ctx.fillStyle = '#ecfeff'; ctx.beginPath(); ctx.arc(s.x - cam, s.y, 3, 0, 7); ctx.fill() }
+      }
+
+      function hero() {
+        const p = P, st = p.st, x = Math.round(p.x - cam), y = Math.round(p.y), f = p.face;
+
+        for (const t of trail) { ctx.globalAlpha = t.l * 1.6; R(t.x - cam, t.y + 4, 12, 20, '#67e8f9') } ctx.globalAlpha = 1;
+
+        if (p.inv > 0 && st !== 'dash' && Math.floor(fr / 3) % 2) ctx.globalAlpha = .4;
+
+        ctx.save(); if (st === 'death') { const k = 1 - p.dth / .9; ctx.translate(x + 6, y + 24); ctx.rotate(f * Math.min(1.5, k * 2)); ctx.translate(-6, -24); ctx.globalAlpha = Math.max(.2, 1 - k * .6) } else ctx.translate(x, y);
+
+        const m = (dx, dy, w, h, c) => R(f > 0 ? dx : 12 - dx - w, dy, w, h, c); const cr2 = st === 'crouch', o = cr2 ? 10 : 0, mv = (st === 'walk' || st === 'run') ? Math.round(Math.sin(T * (st === 'run' ? 18 : 11)) * 2) : 0;
+
+        const cape = st === 'jump' ? -3 : st === 'fall' ? -5 : st === 'run' ? -4 : -1; m(cape - 1, 8 + o, 5, 13 - (cr2 ? 4 : 0), '#3b1d5a'); m(cape - 3, 12 + o, 3, 8, '#2a1442');
+
+        if (cr2) { m(0, 19, 5, 5, '#1a1b28'); m(6, 19, 5, 5, '#1a1b28') } else if (st === 'jump') { m(1, 18, 4, 4, '#1a1b28'); m(6, 17, 4, 5, '#1a1b28') } else if (st === 'fall') { m(0, 18, 4, 6, '#1a1b28'); m(7, 18, 4, 6, '#1a1b28') } else { m(2 + mv, 18, 4, 6, '#1a1b28'); m(6 - mv, 18, 4, 6, '#1a1b28') }
+
+        m(1, 8 + o, 9, 11 - (cr2 ? 5 : 0), st === 'hurt' ? '#fb7185' : '#252a3d'); m(1, 16 + o - (cr2 ? 2 : 0), 9, 2, '#6b7280'); m(0, 8 + o, 10, 2, '#9f1239'); m(2, 0 + o, 8, 9, '#10131b'); m(6, 3 + o, 3, 2, '#67e8f9'); m(2, 0 + o, 8, 2, '#1c1f2e');
+
+        if (st === 'attack') {
+          const s = CFG.sword[p.n], k = 1 - p.atk / p.adur, a = -1.5 + k * 2.6 * (p.n === 2 ? 1.25 : 1) * (p.n === 1 ? -1 : 1) + (p.n === 1 ? 1.2 : 0); ctx.save(); ctx.translate(f > 0 ? 9 : 3, 11 + o); ctx.scale(f, 1); ctx.rotate(a); R(0, -1, 16, 2, '#e2f4f8'); R(0, -2, 3, 4, '#9ca3af'); ctx.restore();
+
+          if (k > .25 && k < .9) { ctx.save(); ctx.translate(f > 0 ? 9 : 3, 11 + o); ctx.scale(f, 1); ctx.globalAlpha = .85 - (k - .25); ctx.strokeStyle = p.n === 2 ? '#a78bfa' : '#67e8f9'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, s.r * .7, p.n === 1 ? .9 : -1.1, p.n === 1 ? -1.1 : .9, p.n === 1); ctx.stroke(); ctx.restore() }
+        }
+
+        else if (st === 'cast') { m(9, 10 + o, 6, 3, '#cbd5e1'); glow(f > 0 ? 17 : -5, 11 + o, 10, '#67e8f9', .9); m(9, 6, 2, 12, '#6b7280') }
+
+        else { m(9, 9 + o, 2, 8, '#cbd5e1'); m(9, 16 + o, 4, 2, '#6b7280') }
+
+        ctx.restore(); ctx.globalAlpha = 1;
+
+        if (st === 'dash') { for (let i = 1; i < 4; i++) { ctx.globalAlpha = .25; R(x - f * i * 6 + (f > 0 ? 0 : 0), y + 8, 3, 12, '#67e8f9') } ctx.globalAlpha = 1 }
+      }
+
+      function hud() {
+        const p = P; R(8, 8, 128, 34, '#05060fcc'); ctx.font = 'bold 7px monospace'; ctx.fillStyle = '#e2e8f0'; ctx.fillText('ELDEN', 12, 16);
+
+        for (let i = 0; i < S.maxHp; i++)R(12 + i * 10, 19, 8, 5, i < p.hp ? '#e11d48' : '#3f1d2a'); R(12, 28, 100, 4, '#1e1b4b'); R(12, 28, 100 * p.mana / CFG.mana, 4, '#38bdf8');
+
+        ctx.fillStyle = '#94a3b8'; ctx.fillText('MANA', 116, 32); ctx.fillStyle = S.relic ? '#fb923c' : '#475569'; ctx.fillText('SALTO 2x ' + (S.relic ? 'OK' : '--'), 12, 39); ctx.fillStyle = '#67e8f9'; ctx.fillText('FRAG ' + S.got.filter(Boolean).length + '/4', 76, 39);
+
+        const ic = [['J', 0, 1], ['K', p.dcd / CFG.dash.cd, 1], ['L', p.mana < SPELLS[0].cost ? 1 : p.mcd / SPELLS[0].cd, 1]]; ic.forEach((a, i) => { const x = 8 + i * 20, y = H - 26; R(x, y, 16, 16, '#05060fcc'); R(x, y, 16, 1, '#4c3f86'); ctx.fillStyle = '#e2e8f0'; ctx.fillText(a[0], x + 6, y + 11); if (a[1] > 0) { ctx.globalAlpha = .6; R(x, y + 16 * (1 - a[1]), 16, 16 * a[1], '#000'); ctx.globalAlpha = 1 } });
+
+        const b = en.find(e => e.boss && e.on && !e.dead); if (b) { R(140, H - 16, 200, 6, '#2a1220'); R(140, H - 16, 200 * b.hp / b.mhp, 6, '#a78bfa'); ctx.fillStyle = '#e2e8f0'; ctx.textAlign = 'center'; ctx.fillText('GUARDIÃO CINZENTO', 240, H - 20); ctx.textAlign = 'left' }
+      }
+
+      function draw() {
+        ctx.save(); if (shake > 0) ctx.translate(Math.round((Math.random() - .5) * shake), Math.round((Math.random() - .5) * shake));
+
+        bg(); plats(); actors(); hero();
+
+        for (const q of pt) { ctx.globalAlpha = Math.min(1, q.l * 3); R(q.x - cam, q.y, q.s, q.s, q.c) } ctx.globalAlpha = 1;
+
+        for (const a of amb) { ctx.globalAlpha = .5; R(a.x, a.y, 1, 1, a.p % 3 ? '#a5f3fc' : '#c4b5fd') } ctx.globalAlpha = 1;
+
+        ctx.fillStyle = 'rgba(140,120,210,.07)'; for (let j = 0; j < 5; j++) { const x = ((j * 140 - cam * .5 + T * 9) % (W + 240) + W + 240) % (W + 240) - 120; ctx.beginPath(); ctx.ellipse(x, 212 + j * 5, 80, 12, 0, 0, 7); ctx.fill() }
+
+        glow(P.x + 6 - cam, P.y + 12, 60, '#67e8f9', .14); ctx.restore(); ctx.drawImage(vg, 0, 0); hud();
+
+        if (fade > 0) { ctx.globalAlpha = fade; R(0, 0, W, H, '#000'); ctx.globalAlpha = 1 }
+      }
+
+      function loop(now) { if (!running) return; const dt = Math.min(.033, (now - last) / 1000 || 0); last = now; if (!paused && !done) update(dt); draw(); requestAnimationFrame(loop) }
+
+      load(true); draw(); menu();
+
+    })();
+
+  </script>
+</body>
+
+</html>

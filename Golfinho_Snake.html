@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Golfinho Snake</title>
+  <style>
+    :root {
+      --bg: #d7ecff;
+      --fg: #0b2a4d;
+      --card: #ffffff;
+      --accent: #2f7fd6;
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px)
+    }
+
+    @media (prefers-color-scheme:dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #071a33;
+        --fg: #d9eeff;
+        --card: #0e2a50;
+        --accent: #5aa9f0
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #071a33;
+      --fg: #d9eeff;
+      --card: #0e2a50;
+      --accent: #5aa9f0
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: "Courier New", ui-monospace, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation
+    }
+
+    h1 {
+      margin: 4px 0 0;
+      font-size: 22px;
+      letter-spacing: 2px
+    }
+
+    .hud {
+      display: flex;
+      gap: 8px;
+      width: min(92vw, 480px)
+    }
+
+    .hud div {
+      flex: 1;
+      background: var(--card);
+      border: 3px solid var(--accent);
+      padding: 6px 8px;
+      text-align: center;
+      font-size: 13px
+    }
+
+    .hud b {
+      display: block;
+      font-size: 20px
+    }
+
+    .wrap {
+      position: relative;
+      width: min(92vw, 480px)
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      image-rendering: pixelated;
+      border: 4px solid var(--accent);
+      background: #0f3b6b
+    }
+
+    .ov {
+      position: absolute;
+      inset: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(5, 20, 45, .78);
+      color: #fff;
+      text-align: center;
+      padding: 16px
+    }
+
+    .ov.hide {
+      display: none
+    }
+
+    .ov h2 {
+      margin: 0;
+      font-size: 26px
+    }
+
+    .ov p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.4
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      border: 3px solid #173a78;
+      padding: 8px 16px;
+      font-weight: bold
+    }
+
+    button:active {
+      transform: translateY(2px)
+    }
+
+    .pad {
+      display: grid;
+      grid-template-columns: repeat(3, 64px);
+      grid-template-rows: repeat(2, 52px);
+      gap: 6px;
+      margin-top: 2px
+    }
+
+    .pad button {
+      padding: 0;
+      font-size: 22px
+    }
+
+    .pad .u {
+      grid-column: 2
+    }
+
+    .pad .l {
+      grid-column: 1;
+      grid-row: 2
+    }
+
+    .pad .d {
+      grid-column: 2;
+      grid-row: 2
+    }
+
+    .pad .r {
+      grid-column: 3;
+      grid-row: 2
+    }
+
+    .top {
+      display: flex;
+      gap: 8px
+    }
+
+    small {
+      opacity: .75
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🐬 GOLFINHO SNAKE</h1>
+  <div class="hud">
+    <div>Rosquinhas<b id="sc">0</b></div>
+    <div>Tamanho<b id="ln">3</b></div>
+    <div>Recorde<b id="bs">0</b></div>
+  </div>
+  <div class="wrap">
+    <canvas id="c"></canvas>
+    <div class="ov" id="ov">
+      <h2 id="ot">GOLFINHO SNAKE</h2>
+      <p id="om">Coma as rosquinhas de chocolate e faça o golfinho crescer!<br>Não bata nas bordas nem no próprio corpo.
+      </p>
+      <button id="go">JOGAR</button>
+      <small>Setas ou WASD • Espaço pausa • Deslize na tela</small>
+    </div>
+  </div>
+  <div class="top"><button id="pz">⏸ Pausar</button><button id="mt">🔊 Som</button></div>
+  <div class="pad">
+    <button class="u" data-d="u">▲</button><button class="l" data-d="l">◀</button><button class="d"
+      data-d="d">▼</button><button class="r" data-d="r">▶</button>
+  </div>
+  <script>
+    const $ = id => document.getElementById(id);
+    const N = 20, C = 24, P = 2;
+    const cv = $('c'), ctx = cv.getContext('2d');
+    cv.width = cv.height = N * C; ctx.imageSmoothingEnabled = false;
+    const PAL = { D: '#243447', S: '#46607a', B: '#6f8ea8', H: '#9db8cb', L: '#eaf1f5', W: '#ffffff', K: '#0b1020', M: '#16212e', O: '#2b140c', C: '#5a3220', c: '#8a5a3c', Y: '#e9b36a', P: '#ff6fa8' };
+    const HEAD = [
+      "............",
+      "....DDDD....",
+      "DDDDSSSSDD..",
+      "SSSSSMSSSSD.",
+      "BBBBBBWKBBDD",
+      "BBBBBBBBBBBD",
+      "HHHHHHHMMMMD",
+      "LLLLLLLLLLD.",
+      "LLLLLLLLDD..",
+      "LLLSSSDD....",
+      "DDSSSD......",
+      "............"];
+    const BODY = [
+      "............",
+      "............",
+      "DDDDDDDDDDDD",
+      "SSSSSSSSSSSS",
+      "BBBBBBBBBBBB",
+      "BBBBBBBBBBBB",
+      "HHHHHHHHHHHH",
+      "LLLLLLLLLLLL",
+      "LLLLLLLLLLLL",
+      "LLLLLLLLLLLL",
+      "DDDDDDDDDDDD",
+      "............"];
+    const BODYFIN = BODY.slice();
+    BODYFIN[0] = "...D........"; BODYFIN[1] = "...DSD......"; BODYFIN[2] = "DDDDSSDDDDDD";
+    const SLIM = [
+      "............",
+      "............",
+      "............",
+      "DDDDDDDDDDDD",
+      "SSSSSSSSSSSS",
+      "BBBBBBBBBBBB",
+      "BBBBBBBBBBBB",
+      "LLLLLLLLLLLL",
+      "LLLLLLLLLLLL",
+      "DDDDDDDDDDDD",
+      "............",
+      "............"];
+    const TAIL = [
+      "............",
+      "DD..........",
+      "DSD.........",
+      "..DSDDDDDDDD",
+      "..DSSSSSSSSS",
+      "..DBBBBBBBBB",
+      "...DBBBBBBBB",
+      "...DLLLLLLLL",
+      "..DLLLLLLLLL",
+      "..DLDDDDDDDD",
+      "DLD.........",
+      "DD.........."];
+    const DONUT = [
+      "....OOOO....",
+      "..OOCCCCOO..",
+      ".OCCcCCCPCO.",
+      ".OCcCOOCCPO.",
+      "OCCCO..OCCCO",
+      "OPCCO..OCCPO",
+      "OCCCCOOCCCCO",
+      ".OCPCCCCCCO.",
+      ".OCCCCcCCCO.",
+      "..OOYYYYOO..",
+      "....OOOO....",
+      "............"];
+    function spr(map, x, y, v, flipOnly) {
+      ctx.save(); ctx.translate(x * C + C / 2, y * C + C / 2);
+      if (v) { if (v.x < 0) ctx.scale(-1, 1); else if (v.y > 0) ctx.rotate(Math.PI / 2); else if (v.y < 0) ctx.rotate(-Math.PI / 2); }
+      for (let r = 0; r < 12; r++) { const row = map[r].padEnd(12, '.'); for (let c = 0; c < 12; c++) { const ch = row[c]; if (ch && ch !== '.' && ch !== ' ') { ctx.fillStyle = PAL[ch]; ctx.fillRect((c - 6) * P, (r - 6) * P, P, P); } } }
+      ctx.restore();
+    }
+    let snake, dir, queue, apple, score, best = 0, state = 'ready', acc = 0, last = 0, bubbles = [], parts = [], muted = false, AC = null, t = 0;
+    try { best = +localStorage.getItem('golfinho-best') || 0 } catch (e) { }
+    $('bs').textContent = best;
+    for (let i = 0; i < 14; i++)bubbles.push({ x: Math.random() * N * C, y: Math.random() * N * C, r: 1 + Math.random() * 2, s: .2 + Math.random() * .5 });
+    function reset() {
+      snake = [{ x: 10, y: 10 }, { x: 9, y: 10 }, { x: 8, y: 10 }]; dir = { x: 1, y: 0 }; queue = []; score = 0;
+      placeApple(); hud();
+    }
+    function hud() { $('sc').textContent = score; $('ln').textContent = snake.length; $('bs').textContent = best }
+    function placeApple() {
+      let p; do { p = { x: Math.floor(Math.random() * N), y: Math.floor(Math.random() * N) } } while (snake.some(s => s.x === p.x && s.y === p.y));
+      apple = p;
+    }
+    function snd(f, d, type, vol) {
+      if (muted) return;
+      try {
+        AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+        const o = AC.createOscillator(), g = AC.createGain();
+        o.type = type || 'square'; o.frequency.value = f; g.gain.value = vol || .06;
+        o.connect(g); g.connect(AC.destination); o.start();
+        g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime + d); o.stop(AC.currentTime + d);
+      } catch (e) { }
+    }
+    function interval() { return Math.max(62, 135 - score * 2.5) }
+    function step() {
+      const nd = queue.length ? queue.shift() : dir; dir = nd;
+      const h = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+      const eat = h.x === apple.x && h.y === apple.y;
+      const body = eat ? snake : snake.slice(0, -1);
+      if (h.x < 0 || h.y < 0 || h.x >= N || h.y >= N || body.some(s => s.x === h.x && s.y === h.y)) { die(); return }
+      snake.unshift(h);
+      if (eat) {
+        score++; if (score > best) { best = score; try { localStorage.setItem('golfinho-best', best) } catch (e) { } }
+        for (let i = 0; i < 8; i++)parts.push({ x: h.x * C + C / 2, y: h.y * C + C / 2, vx: (Math.random() - .5) * 2, vy: -Math.random() * 1.6 - .3, l: 30 });
+        snd(660, .08); setTimeout(() => snd(990, .1), 70);
+        if (snake.length >= N * N) { win(); return }
+        placeApple();
+      } else snake.pop();
+      hud();
+    }
+    function showOv(t, m, b) { $('ot').textContent = t; $('om').innerHTML = m; $('go').textContent = b; $('ov').classList.remove('hide') }
+    function die() { state = 'over'; snd(180, .35, 'sawtooth', .08); showOv('FIM DE JOGO', 'Você comeu ' + score + ' rosquinha' + (score === 1 ? '' : 's') + '!<br>Recorde: ' + best, 'JOGAR DE NOVO') }
+    function win() { state = 'over'; showOv('VOCÊ VENCEU! 🏆', 'O oceano inteiro é seu!', 'JOGAR DE NOVO') }
+    function start() {
+      if (state === 'over' || state === 'ready') reset();
+      state = 'run'; $('ov').classList.add('hide'); $('pz').textContent = '⏸ Pausar'; acc = 0;
+      try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume() } catch (e) { }
+    }
+    function pause() {
+      if (state === 'run') { state = 'pause'; showOv('PAUSADO', 'Respire fundo, golfinho 🐬', 'CONTINUAR'); $('pz').textContent = '▶ Continuar' }
+      else if (state === 'pause') start();
+    }
+    function turn(n) {
+      if (state !== 'run') return;
+      const ref = queue.length ? queue[queue.length - 1] : dir;
+      if (n.x === -ref.x && n.y === -ref.y) return;
+      if (n.x === ref.x && n.y === ref.y) return;
+      if (queue.length < 2) queue.push(n);
+    }
+    const DIRS = { u: { x: 0, y: -1 }, d: { x: 0, y: 1 }, l: { x: -1, y: 0 }, r: { x: 1, y: 0 } };
+    addEventListener('keydown', e => {
+      const k = e.key.toLowerCase();
+      const m = { arrowup: 'u', w: 'u', arrowdown: 'd', s: 'd', arrowleft: 'l', a: 'l', arrowright: 'r', d: 'r' }[k];
+      if (m) { e.preventDefault(); if (state !== 'run' && state !== 'pause') start(); turn(DIRS[m]); return }
+      if (k === ' ') { e.preventDefault(); if (state === 'run' || state === 'pause') pause(); else start() }
+      if (k === 'enter' && state !== 'run') { state === 'pause' ? pause() : start() }
+    });
+    document.querySelectorAll('.pad button').forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'ready' || state === 'over') start(); turn(DIRS[b.dataset.d]) }));
+    $('go').onclick = () => state === 'pause' ? pause() : start();
+    $('pz').onclick = () => { if (state === 'run' || state === 'pause') pause() };
+    $('mt').onclick = () => { muted = !muted; $('mt').textContent = muted ? '🔇 Mudo' : '🔊 Som' };
+    let sx = 0, sy = 0;
+    cv.addEventListener('touchstart', e => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY }, { passive: true });
+    cv.addEventListener('touchend', e => {
+      const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+      if (Math.abs(dx) > Math.abs(dy)) turn(dx > 0 ? DIRS.r : DIRS.l); else turn(dy > 0 ? DIRS.d : DIRS.u);
+    }, { passive: true });
+    function vec(a, b) { return { x: Math.sign(a.x - b.x), y: Math.sign(a.y - b.y) } }
+    function draw() {
+      for (let y = 0; y < N; y++)for (let x = 0; x < N; x++) {
+        ctx.fillStyle = (x + y) % 2 ? '#0f4276' : '#0d3b6b'; ctx.fillRect(x * C, y * C, C, C);
+      }
+      ctx.fillStyle = 'rgba(120,200,255,.12)';
+      for (let i = 0; i < N; i++) { const wy = ((i * 37 + Math.floor(t / 40)) % (N * C)); ctx.fillRect((i * 53) % (N * C), wy % (N * C), 14, 2) }
+      ctx.fillStyle = 'rgba(190,235,255,.5)';
+      bubbles.forEach(b => { b.y -= b.s; if (b.y < -4) { b.y = N * C + 4; b.x = Math.random() * N * C } ctx.fillRect(Math.round(b.x), Math.round(b.y), Math.round(b.r), Math.round(b.r)) });
+      if (!snake) return;
+      const bob = Math.sin(t / 180) * 1;
+      ctx.save(); ctx.translate(0, bob); spr(DONUT, apple.x, apple.y, null); ctx.restore();
+      const n = snake.length;
+      if (n > 1) spr(TAIL, snake[n - 1].x, snake[n - 1].y, vec(snake[n - 2], snake[n - 1]));
+      for (let i = n - 2; i >= 1; i--) { const k = n - 2 - i; let m = (k < 2 && i > 1) ? SLIM : BODY; if (i === 1) m = BODYFIN; spr(m, snake[i].x, snake[i].y, vec(snake[i - 1], snake[i])) }
+      spr(HEAD, snake[0].x, snake[0].y, dir);
+      parts = parts.filter(p => p.l > 0);
+      parts.forEach(p => { p.x += p.vx; p.y += p.vy; p.l--; ctx.fillStyle = 'rgba(150,90,50,' + (p.l / 30) + ')'; ctx.fillRect(Math.round(p.x), Math.round(p.y), 3, 3) });
+    }
+    function loop(ts) {
+      const dt = ts - last; last = ts; t = ts;
+      if (state === 'run') { acc += Math.min(dt, 100); while (acc >= interval() && state === 'run') { acc -= interval(); step() } }
+      draw(); requestAnimationFrame(loop);
+    }
+    reset(); requestAnimationFrame(loop);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Astro Cristais</title>
+    <style>
+        :root {
+            --bg: #e8e6f6;
+            --fg: #1c1b3a;
+            --bt: #ffffff;
+            --bd: #4a4690;
+            box-sizing: border-box;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px)
+        }
+
+        @media (prefers-color-scheme:dark) {
+            :root:not([data-theme="light"]) {
+                --bg: #0a0a1c;
+                --fg: #d9e4ff;
+                --bt: #1a1a3a;
+                --bd: #6f7bd6
+            }
+        }
+
+        :root[data-theme="dark"] {
+            --bg: #0a0a1c;
+            --fg: #d9e4ff;
+            --bt: #1a1a3a;
+            --bd: #6f7bd6
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--fg);
+            font-family: system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 8px;
+            box-sizing: border-box;
+            overflow-x: hidden
+        }
+
+        canvas {
+            width: 100%;
+            max-width: min(960px, calc((100vh - 130px)*16/9));
+            aspect-ratio: 16/9;
+            image-rendering: pixelated;
+            border: 2px solid var(--bd);
+            border-radius: 6px;
+            background: #000;
+            touch-action: none;
+            display: block
+        }
+
+        p {
+            margin: 0;
+            font-size: 13px;
+            text-align: center;
+            opacity: .85
+        }
+
+        .pad {
+            display: none;
+            width: 100%;
+            max-width: 960px;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        .pad div {
+            display: flex;
+            gap: 10px
+        }
+
+        @media (pointer:coarse) {
+            .pad {
+                display: flex
+            }
+        }
+
+        button {
+            background: var(--bt);
+            color: var(--fg);
+            border: 2px solid var(--bd);
+            border-radius: 12px;
+            padding: 14px 22px;
+            font-size: 18px;
+            font-weight: 700;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="c"></canvas>
+    <p>← → ou A D: mover · Espaço ou ↑: pular · Pise nos meteoros e colete os cristais de oxigênio</p>
+    <div class="pad">
+        <div><button data-k="left">◀</button><button data-k="right">▶</button></div><button data-k="jump">PULAR</button>
+    </div>
+    <script>
+        const W = 320, H = 180, LW = 2400, cv = document.getElementById('c'), g = cv.getContext('2d');
+        cv.width = W; cv.height = H; g.imageSmoothingEnabled = false;
+        // ---------- sprites ----------
+        function mk(rows, pal) { const c = document.createElement('canvas'); c.width = rows[0].length; c.height = rows.length; const x = c.getContext('2d'); rows.forEach((r, j) => [...r].forEach((ch, i) => { if (pal[ch]) { x.fillStyle = pal[ch]; x.fillRect(i, j, 1, 1) } })); return c }
+        function flip(s) { const c = document.createElement('canvas'); c.width = s.width; c.height = s.height; const x = c.getContext('2d'); x.translate(s.width, 0); x.scale(-1, 1); x.drawImage(s, 0, 0); return c }
+        const PP = { K: '#14122b', W: '#eef3ff', G: '#a9b6d9', V: '#35c8ff', O: '#ff8a3d' };
+        const BODY = ["...KKKKKK...", "..KWWWWWWK..", ".KWWKVVVVKK.", ".KWWKVVVVKK.", ".KWWWKKKKWK.", "..KWWWWWWK..", "OOKWWWWWWK..", "OOKWWWWWWK..", "OOKWWGGWWK..", "..KWWWWWWK..", "..KWWWWWWK.."];
+        const LEG = { idle: ["..KWWKKWWK..", "..KGGK.KGGK.", "..KKK..KKK.."], r1: ["..KWWK.KWWK.", ".KWWK...KWWK", ".KKK....KKK."], r2: ["...KWWWWK...", "...KGKKGK...", "...KKK.KKK.."] };
+        const SP = {}; for (const k in LEG) { SP[k] = [flip(mk(BODY.concat(LEG[k]), PP)), mk(BODY.concat(LEG[k]), PP)] }
+        const CR = mk(["...KK...", "..KCCK..", ".KCWCCK.", "KCWCCCCK", "KCCCCCDK", "KCCCCDDK", ".KCCCDK.", "..KCDK..", "...KK..."], { K: '#14122b', C: '#43e6ff', W: '#eafcff', D: '#1a8fd1' });
+        const MT = mk(["...KKKKKK...", "..KRRRRRRK..", ".KRRDDRRRRK.", "KRRDDRRRCCRK", "KRRRRRRCCRRK", "KRRRRRRRRRRK", "KRCCRRRRDDRK", "KRCCRRRRDDRK", "KRRRRRDRRRRK", ".KRRRRRRRRK.", "..KRRRRRRK..", "...KKKKKK..."], { K: '#14122b', R: '#8a6f66', D: '#5d4a47', C: '#b99a8e' });
+        // ---------- fase ----------
+        const solids = [];
+        [[0, 300], [356, 264], [680, 204], [940, 300], [1300, 180], [1540, 260], [1860, 540]].forEach(a => solids.push({ x: a[0], y: 160, w: a[1], h: 20, t: 0 }));
+        [[150, 118, 48], [440, 112, 56], [540, 86, 48], [760, 116, 64], [1010, 110, 48], [1100, 84, 56], [1350, 114, 48], [1620, 112, 64], [1700, 84, 48], [1960, 112, 56], [2080, 86, 56]].forEach(a => solids.push({ x: a[0], y: a[1], w: a[2], h: 8, t: 1 }));
+        const CRY = [[170, 102], [220, 140], [330, 120], [455, 96], [560, 70], [650, 120], [790, 100], [910, 120], [1030, 94], [1120, 68], [1220, 120], [1370, 98], [1510, 120], [1640, 96], [1720, 68], [1830, 120], [1980, 96], [2100, 70], [2200, 140], [2300, 140]];
+        const MET = [[110, 280, 148], [380, 600, 148], [700, 860, 148], [980, 1220, 148], [1320, 1460, 148], [1580, 1780, 148], [1920, 2200, 148], [2250, 2340, 148], [762, 812, 104]];
+        const GR = 900, JV = 330, SPD = 110;
+        const stars = [...Array(80)].map(() => ({ x: Math.random() * W, y: Math.random() * 130, f: .05 + Math.random() * .3, s: Math.random() < .2 ? 2 : 1 }));
+        let state = 'title', T = 0, p, ox, lives, score, cry, met, parts, cam, fallT, safe, best = 0, bonus = 0;
+        try { best = +localStorage.getItem('astro-best') || 0 } catch (e) { }
+        const keys = { left: 0, right: 0, jump: 0 };
+        function reset() {
+            p = { x: 20, y: 140, w: 10, h: 15, vx: 0, vy: 0, on: false, face: 1, coy: 0, buf: 0, inv: 0, nocut: false }; ox = 100; lives = 3; score = 0; cam = 0; fallT = 2; safe = { x: 20, y: 140 }; parts = [];
+            cry = CRY.map(c => ({ x: c[0], y: c[1], got: false }));
+            met = MET.map(m => ({ x: m[0], y: m[2], vx: 28, min: m[0], max: m[1], dead: false, fall: false }))
+        }
+        reset();
+        // ---------- som ----------
+        let ac; function snd(f, d = .08, ty = 'square', f2) { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(), v = ac.createGain(), n = ac.currentTime; o.type = ty; o.frequency.setValueAtTime(f, n); if (f2) o.frequency.exponentialRampToValueAtTime(f2, n + d); v.gain.setValueAtTime(.05, n); v.gain.exponentialRampToValueAtTime(.001, n + d); o.connect(v); v.connect(ac.destination); o.start(); o.stop(n + d) } catch (e) { } }
+        // ---------- entrada ----------
+        function start() { if (state !== 'play') { reset(); state = 'play' } }
+        const map = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'jump', KeyW: 'jump', Space: 'jump' };
+        addEventListener('keydown', e => { if (e.code === 'Enter') { start(); return } const k = map[e.code]; if (!k) return; e.preventDefault(); if (k === 'jump') { if (state !== 'play') { start(); return } if (!keys.jump) p.buf = .12 } keys[k] = 1 });
+        addEventListener('keyup', e => { const k = map[e.code]; if (k) keys[k] = 0 });
+        cv.addEventListener('pointerdown', start);
+        document.querySelectorAll('[data-k]').forEach(b => { const k = b.dataset.k; b.addEventListener('pointerdown', e => { e.preventDefault(); if (state !== 'play') { start(); return } if (k === 'jump' && !keys.jump) p.buf = .12; keys[k] = 1 });['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, () => keys[k] = 0)) });
+        // ---------- lógica ----------
+        const hit = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+        function burst(x, y, c, n) { for (let i = 0; i < n; i++)parts.push({ x, y, vx: (Math.random() - .5) * 120, vy: -Math.random() * 100, l: .5 + Math.random() * .4, c }) }
+        function finish(s) { state = s; if (s === 'win') { bonus = Math.round(ox) * 3; score += bonus } if (score > best) { best = score; try { localStorage.setItem('astro-best', best) } catch (e) { } } }
+        function hurt() { if (p.inv > 0) return; lives--; snd(140, .35, 'sawtooth', 40); burst(p.x + 5, p.y + 7, '#ffffff', 16); if (lives <= 0) { finish('over'); return } p.x = safe.x; p.y = safe.y - 1; p.vx = p.vy = 0; p.inv = 2; ox = Math.max(ox, 30) }
+        function step(dt) {
+            if (p.inv > 0) p.inv -= dt;
+            ox -= 3.5 * dt; if (ox <= 0) { ox = 0; hurt(); ox = 50 }
+            const ax = keys.right - keys.left; p.vx = ax * SPD; if (ax) p.face = ax;
+            p.coy = p.on ? .09 : p.coy - dt; p.buf = Math.max(0, p.buf - dt);
+            if (p.buf > 0 && p.coy > 0) { p.vy = -JV; p.buf = 0; p.coy = 0; p.on = false; p.nocut = false; snd(300, .14, 'square', 620) }
+            if (!keys.jump && p.vy < -110 && !p.nocut) p.vy = -110;
+            if (p.vy >= 0) p.nocut = false;
+            p.vy = Math.min(p.vy + GR * dt, 400);
+            p.x += p.vx * dt; if (p.x < 0) p.x = 0;
+            for (const s of solids) if (hit(p, s)) { p.x = p.vx > 0 ? s.x - p.w : s.x + s.w }
+            const vy0 = p.vy; p.y += p.vy * dt; p.on = false;
+            for (const s of solids) if (hit(p, s)) { if (vy0 > 0) { p.y = s.y - p.h; p.on = true } else p.y = s.y + s.h; p.vy = 0 }
+            if (p.on) safe = { x: p.x, y: p.y };
+            if (p.y > H + 20) hurt();
+            cam = Math.max(0, Math.min(LW - W, p.x - 110));
+            // cristais
+            cry.forEach((c, i) => { if (!c.got && hit(p, { x: c.x - 4, y: c.y - 5, w: 8, h: 9 })) { c.got = true; ox = Math.min(100, ox + 20); score += 10; burst(c.x, c.y, '#43e6ff', 10); snd(700, .12, 'triangle', 1300) } });
+            // meteoros
+            fallT -= dt; if (fallT <= 0) { fallT = 1.8 + Math.random() * 2.2; met.push({ x: cam + W * (.3 + Math.random() * .8), y: -14, vx: -(20 + Math.random() * 30), vy: 60 + Math.random() * 50, dead: false, fall: true }) }
+            for (const m of met) {
+                if (m.dead) continue;
+                if (m.fall) {
+                    m.x += m.vx * dt; m.y += m.vy * dt; if (Math.random() < .5) parts.push({ x: m.x + 8, y: m.y + 4, vx: 30, vy: -20, l: .35, c: '#ff8a3d' });
+                    if (m.y > H + 30 || solids.some(s => hit({ x: m.x, y: m.y, w: 12, h: 12 }, s))) { m.dead = true; if (m.y < H) burst(m.x + 6, m.y + 6, '#b99a8e', 8) }
+                }
+                else { m.x += m.vx * dt; if (m.x < m.min) { m.x = m.min; m.vx = Math.abs(m.vx) } if (m.x > m.max) { m.x = m.max; m.vx = -Math.abs(m.vx) } }
+                const mb = { x: m.x + 1, y: m.y + 1, w: 10, h: 10 };
+                if (hit(p, mb)) { if (p.vy > 0 && p.y + p.h - mb.y < 9) { m.dead = true; p.vy = keys.jump ? -300 : -230; p.nocut = true; score += 25; burst(m.x + 6, m.y + 6, '#b99a8e', 12); snd(220, .15, 'square', 90) } else hurt() }
+            }
+            met = met.filter(m => !m.dead);
+            for (const q of parts) { q.x += q.vx * dt; q.y += q.vy * dt; q.vy += 300 * dt; q.l -= dt }
+            parts = parts.filter(q => q.l > 0);
+            if (p.x > LW - 50) finish('win')
+        }
+        // ---------- desenho ----------
+        function circ(cx, cy, r, col) { g.fillStyle = col; for (let d = -r; d <= r; d++) { const w = Math.round(Math.sqrt(r * r - d * d)); g.fillRect(cx - w, cy + d, w * 2, 1) } }
+        function txt(s, x, y, sz, col, al) { g.font = 'bold ' + sz + 'px "Courier New",monospace'; g.textAlign = al || 'left'; g.fillStyle = '#14122b'; g.fillText(s, x + 1, y + 1); g.fillStyle = col || '#fff'; g.fillText(s, x, y) }
+        function draw() {
+            g.fillStyle = '#0b0a22'; g.fillRect(0, 0, W, H); g.fillStyle = '#14123a'; g.fillRect(0, 70, W, 60);
+            for (const s of stars) { if (((T * 2 + s.x) % 3) < .25) continue; g.fillStyle = '#dfe8ff'; g.fillRect(Math.round(((s.x - cam * s.f) % W + W) % W), Math.round(s.y), s.s, s.s) }
+            const px = Math.round(240 - cam * .05); circ(px, 44, 22, '#6e5ac4'); circ(px - 5, 40, 14, '#8470dc'); g.fillStyle = '#4a3a99'; g.fillRect(px - 34, 46, 68, 3);
+            for (let x = 0; x < W; x += 4) { const h = 18 + 10 * Math.sin((x + cam * .3) * .03) + 6 * Math.sin((x + cam * .3) * .11); g.fillStyle = '#22204a'; g.fillRect(x, Math.round(158 - h), 4, h) }
+            for (const s of solids) {
+                const sx = Math.round(s.x - cam); if (sx > W || sx + s.w < 0) continue;
+                if (s.t === 0) { g.fillStyle = '#7d79a3'; g.fillRect(sx, s.y, s.w, s.h); g.fillStyle = '#b9b5d8'; g.fillRect(sx, s.y, s.w, 3); g.fillStyle = '#5d5a82'; for (let k = 0; k < s.w; k += 19)g.fillRect(sx + k + (k * 7 % 5), 165 + (k % 3) * 5, 3, 2) }
+                else { g.fillStyle = '#46558a'; g.fillRect(sx, s.y, s.w, s.h); g.fillStyle = '#8fa3e6'; g.fillRect(sx, s.y, s.w, 2); g.fillStyle = '#ffd36b'; for (let k = 5; k < s.w; k += 12)g.fillRect(sx + k, s.y + 4, 2, 2) }
+            }
+            // bandeira de chegada
+            const fx = Math.round(LW - 40 - cam); g.fillStyle = '#dfe8ff'; g.fillRect(fx, 118, 2, 42); g.fillStyle = ((T * 4) | 0) % 2 ? '#ff5a5a' : '#ffd36b'; g.fillRect(fx + 2, 118, 12, 8);
+            cry.forEach((c, i) => { if (!c.got) g.drawImage(CR, Math.round(c.x - 4 - cam), Math.round(c.y - 5 + Math.sin(T * 3 + i) * 2)) });
+            for (const m of met) g.drawImage(MT, Math.round(m.x - cam), Math.round(m.y));
+            for (const q of parts) { g.fillStyle = q.c; g.fillRect(Math.round(q.x - cam), Math.round(q.y), 2, 2) }
+            if (state !== 'over' && (p.inv <= 0 || ((T * 12) | 0) % 2)) { const f = !p.on ? 'r1' : (p.vx ? (((T * 10) | 0) % 2 ? 'r1' : 'r2') : 'idle'); g.drawImage(SP[f][p.face > 0 ? 1 : 0], Math.round(p.x - 1 - cam), Math.round(p.y)) }
+            // HUD
+            g.fillStyle = '#14122b'; g.fillRect(5, 5, 74, 10); g.fillStyle = ox < 25 && ((T * 6) | 0) % 2 ? '#ff5a5a' : '#43e6ff'; g.fillRect(7, 7, Math.round(70 * ox / 100), 6); txt('O2', 84, 13, 9);
+            txt('CRISTAIS ' + cry.filter(c => c.got).length + '/' + cry.length, W - 6, 13, 9, '#fff', 'right');
+            txt('PONTOS ' + score, 6, 26, 9, '#ffd36b');
+            for (let i = 0; i < lives; i++) { g.fillStyle = '#14122b'; g.fillRect(W - 12 - i * 10, 17, 8, 8); g.fillStyle = '#ff5a5a'; g.fillRect(W - 11 - i * 10, 18, 6, 6) }
+            if (state !== 'play') {
+                g.fillStyle = 'rgba(8,6,28,.72)'; g.fillRect(0, 0, W, H);
+                if (state === 'title') { txt('ASTRO CRISTAIS', W / 2, 62, 22, '#43e6ff', 'center'); txt('Colete cristais de oxigênio e pise nos meteoros!', W / 2, 86, 9, '#fff', 'center'); txt('Chegue à bandeira antes do ar acabar', W / 2, 99, 9, '#fff', 'center') }
+                else if (state === 'over') { txt('FIM DE JOGO', W / 2, 62, 22, '#ff5a5a', 'center'); txt('Pontos: ' + score, W / 2, 86, 10, '#ffd36b', 'center') }
+                else { txt('MISSÃO CUMPRIDA!', W / 2, 58, 20, '#7dff9a', 'center'); txt('Pontos: ' + score + '  (bônus de ar: ' + bonus + ')', W / 2, 82, 9, '#ffd36b', 'center') }
+                txt('Recorde: ' + best, W / 2, 112, 9, '#fff', 'center'); if (((T * 2) | 0) % 2) txt('Enter, espaço ou toque para ' + (state === 'title' ? 'começar' : 'jogar de novo'), W / 2, 140, 9, '#fff', 'center')
+            }
+        }
+        // ---------- loop ----------
+        let last = 0, acc = 0;
+        function loop(n) { const d = Math.min(.05, (n - last) / 1000 || 0); last = n; T += d; if (state === 'play') { acc += d; while (acc >= 1 / 60) { step(1 / 60); acc -= 1 / 60; if (state !== 'play') break } } draw(); requestAnimationFrame(loop) }
+        requestAnimationFrame(loop);
+    </script>
+</body>
+
+</html>
