@@ -245,8 +245,8 @@
       top: 12px;
       right: calc(env(safe-area-inset-right, 0px) + 12px);
       z-index: 6;
-      font-size: 20px;
-      padding: 6px 12px;
+      font-size: 28px;
+      padding: 9px 16px;
       background: #0b1424cc;
       color: #fff;
       border: 2px solid #fff6
@@ -257,8 +257,11 @@
       top: 12px;
       left: 12px;
       z-index: 6;
-      font-size: 20px;
-      padding: 6px 12px;
+      font-size: 28px;
+      width: 66px;
+      height: 56px;
+      box-sizing: border-box;
+      padding: 0;
       background: #0b1424cc;
       color: #fff;
       border: 2px solid #fff6
@@ -274,11 +277,11 @@
 
     #pzb {
       position: fixed;
-      top: 66px;
+      top: 88px;
       right: calc(env(safe-area-inset-right, 0px) + 12px);
       z-index: 6;
-      font-size: 20px;
-      padding: 6px 12px;
+      font-size: 28px;
+      padding: 9px 16px;
       background: #0b1424cc;
       color: #fff;
       border: 2px solid #fff6
@@ -297,6 +300,11 @@
       text-align: center;
       padding: 20px;
       touch-action: none
+    }
+
+    #pz button {
+      font-size: 24px;
+      padding: 14px 32px
     }
 
     #pz h1 {
@@ -380,16 +388,16 @@
       z-index: 3;
       display: grid;
       grid-template-columns: auto auto;
-      gap: 14px;
+      gap: 18px;
       align-items: end
     }
 
     .tbtn {
-      width: 92px;
-      height: 92px;
+      width: 120px;
+      height: 120px;
       border-radius: 50%;
       padding: 0;
-      font-size: 15px;
+      font-size: 19px;
       border: 3px solid #fff7;
       color: #fff;
       background: #1556c8cc;
@@ -406,9 +414,9 @@
     }
 
     #bC {
-      width: 54px;
-      height: 54px;
-      font-size: 22px;
+      width: 72px;
+      height: 72px;
+      font-size: 30px;
       background: #0b1424cc;
       grid-column: 1/3;
       justify-self: end
@@ -488,12 +496,12 @@
     #quickchat {
       position: fixed;
       left: 14px;
-      top: 70px;
+      top: 90px;
       z-index: 7;
       display: flex;
       flex-direction: column;
       gap: 6px;
-      font-size: 13px;
+      font-size: 17px;
       text-shadow: 0 1px 3px #000
     }
 
@@ -503,8 +511,8 @@
       color: white;
       border: 1px solid #ffffff66;
       border-radius: 8px;
-      padding: 7px 11px;
-      font-size: 13px;
+      padding: 10px 15px;
+      font-size: 17px;
       text-align: left
     }
 
@@ -532,14 +540,14 @@
 
     @media(max-width:800px) {
       #quickchat {
-        top: 58px;
+        top: 80px;
         left: 8px
       }
 
       .qc,
       .qcx {
-        font-size: 11px;
-        padding: 5px 7px
+        font-size: 15px;
+        padding: 8px 11px
       }
 
       #chatpop {
@@ -752,11 +760,15 @@
     #coins {
       position: fixed;
       top: 12px;
-      left: 76px;
+      left: 92px;
+      height: 56px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
       z-index: 6;
       font-weight: 900;
-      font-size: 18px;
-      padding: 7px 12px;
+      font-size: 24px;
+      padding: 0 16px;
       background: #0b1424cc;
       border: 2px solid #ffd24d99;
       border-radius: 10px;
@@ -830,6 +842,7 @@
 
     #shh {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
       gap: 10px
@@ -847,8 +860,8 @@
     }
 
     #shx {
-      font-size: 16px;
-      padding: 7px 14px;
+      font-size: 20px;
+      padding: 9px 18px;
       background: #ffffff22;
       color: #fff
     }
@@ -973,8 +986,8 @@
 
     .tab {
       flex: 1;
-      font-size: 15px;
-      padding: 9px 6px;
+      font-size: 19px;
+      padding: 14px 6px;
       background: #ffffff1f;
       color: #fff;
       border: 2px solid #ffffff33
@@ -1029,6 +1042,13 @@
       white-space: nowrap
     }
 
+    .si .by {
+      width: 100%;
+      font-size: 13px;
+      padding: 7px 4px;
+      white-space: nowrap
+    }
+
     .si.pvd {
       border-color: #ffd24d;
       box-shadow: 0 0 14px #ffd24d88
@@ -1037,7 +1057,7 @@
     .shint {
       font-size: 12px;
       opacity: .85;
-      margin: 6px 0 0;
+      margin: 6px 0 14px;
       line-height: 1.35
     }
 
@@ -1287,8 +1307,8 @@
     }
 
     #room button {
-      font-size: 12px;
-      padding: 5px 10px;
+      font-size: 16px;
+      padding: 9px 16px;
       border-radius: 8px
     }
 
@@ -1319,11 +1339,11 @@
     }
 
     body.inmenu #coins {
-      left: 72px;
-      font-size: 15px;
-      padding: 0 10px;
+      left: 92px;
+      font-size: 24px;
+      padding: 0 16px;
       top: 12px;
-      height: 39px;
+      height: 56px;
       box-sizing: border-box;
       display: flex;
       align-items: center;
@@ -1332,6 +1352,11 @@
 
     body.inmenu #ov {
       background: #040b20
+    }
+
+    body.inmenu #ov h1 {
+      position: relative;
+      top: -5vh
     }
 
     body.inmenu #ov::before {
@@ -1649,18 +1674,18 @@
       }
 
       #introFs {
-        width: auto;
-        height: auto;
-        padding: 10px 20px;
-        font-size: 15px;
-        letter-spacing: 2px;
+        width: 54px;
+        height: 54px;
+        padding: 0;
+        font-size: 26px;
+        letter-spacing: 0;
         top: 18px;
         right: 18px;
         transition: background .15s, transform .15s
       }
 
       #introFs .lb {
-        display: inline
+        display: none
       }
 
       #introFs:hover {
@@ -1717,12 +1742,11 @@
   </div>
   <div id="shop" class="hide">
     <div id="shh">
-      <h2>🛍️ LOJA</h2><span id="shc">🪙 0</span><button id="shx">✕ Voltar</button>
+      <h2>🛍️ LOJA</h2><button id="shx">✕ Voltar</button>
     </div>
+    <div id="shm"></div>
     <div id="tabs"><button class="tab sel" data-t="0">🚗 CARRO</button><button class="tab" data-t="1">💥
         EXPLOSÕES</button></div>
-    <div id="shm"></div>
-    <div id="pvb" class="hide"><span id="pvn"></span><button id="pvbtn">Comprar</button></div>
     <p class="shint" id="shint"></p>
     <div id="shi"></div>
   </div>
@@ -6436,7 +6460,7 @@
       const hat = m.slot.children[0]; if (hat && hat.userData.spin) hat.userData.spin.rotation.y = ctime * 20;
       if (LOOKB.dec && LOOKB.dec !== 'none') {const q = Math.floor(ctime * DFPS); if (q !== dLast2) {dLast2 = q; drawDecalB(LOOKB.dec, ctime); dtex2.needsUpdate = true} }
     }
-    function updCoins() {$('coins').textContent = '🪙 ' + SAVE.coins; $('shopbtn').textContent = '🛍️ LOJA · 🪙 ' + SAVE.coins; $('shc').textContent = '🪙 ' + SAVE.coins}
+    function updCoins() {$('coins').textContent = '🪙 ' + SAVE.coins; $('shopbtn').textContent = '🛍️ LOJA · 🪙 ' + SAVE.coins}
     function addCoins(n) {
       SAVE.coins += n; persist(); updCoins();
       const e = $('cgain'); e.textContent = '+' + n + ' 🪙'; e.classList.remove('show'); void e.offsetWidth; e.classList.add('show');
@@ -6452,14 +6476,13 @@
       else {clearPv(); PV[sec.k] = it.id; PREVIEW = {sec, it}; if (sec.k === 'exp') {fxWipe(); EXV.id = it.id; EXV.t = 0} snd(560, .07, 'triangle', .045); shNote('👁 Visualizando ' + it.n + ' — você ainda não tem este item', true)}
       applyLook(); renderShop()
     }
-    function buyPv() {
-      if (!PREVIEW) return; const {sec, it} = PREVIEW;
+    function buyIt(sec, it) {
+      if (SAVE.own[sec.k].includes(it.id)) return;
       if (SAVE.coins < it.p) {shNote('Faltam ' + (it.p - SAVE.coins) + ' 🪙 — faça gols para ganhar moedas!', false); snd(180, .15, 'sawtooth', .05); return }
       SAVE.coins -= it.p; SAVE.own[sec.k].push(it.id); equipIt(sec, it); persist();
       snd(880, .1, 'triangle', .06); setTimeout(() => snd(1320, .15, 'triangle', .06), 90); shNote('✅ ' + it.n + ' comprado e equipado!', true);
       applyLook(); updCoins(); renderShop()
     }
-    $('pvbtn').onclick = buyPv;
     function renderShop() {
       document.querySelectorAll('.tab').forEach(t => t.classList.toggle('sel', +t.dataset.t === shopTab));
       const box = $('shi'); box.innerHTML = '';
@@ -6474,13 +6497,11 @@
           else if (sec.k === 'bst') {const k = SKIN[it.id]; pv = '<span class="pv" style="background:' + (k.rb || k.st || k.tt || k.mk ? 'linear-gradient(135deg,#f33,#fc3,#3f6,#39f,#c3f)' : 'linear-gradient(135deg,' + hx(k.c[0]) + ',' + hx(k.c[1]) + ')') + '">' + it.i + '</span>'}
           else pv = '<span class="pv">' + it.i + '</span>';
           b.innerHTML = pv + '<span>' + it.n + '</span><span class="pr">' + (eq ? '✔ EQUIPADO' : own ? 'EQUIPAR' : isPv ? '👁 VENDO' : '👁 VER · 🪙 ' + it.p) + '</span>';
+          if (!own) {const by = document.createElement('button'); by.className = 'by'; by.textContent = SAVE.coins >= it.p ? 'Comprar' : 'Faltam ' + (it.p - SAVE.coins) + ' 🪙'; by.onclick = ev => {ev.stopPropagation(); buyIt(sec, it)}; b.appendChild(by)}
           b.onclick = () => pick(sec, it); gr.appendChild(b)
         });
         s.appendChild(gr); box.appendChild(s)
       });
-      const pb = $('pvb');
-      if (PREVIEW) {pb.classList.remove('hide'); $('pvn').textContent = '👁 ' + PREVIEW.it.n + ' — 🪙 ' + PREVIEW.it.p; $('pvbtn').textContent = SAVE.coins >= PREVIEW.it.p ? 'Comprar e equipar' : 'Faltam ' + (PREVIEW.it.p - SAVE.coins) + ' 🪙'}
-      else pb.classList.add('hide');
       $('shint').textContent = shopTab === 1 ? 'Aqui você vê só a explosão (sem o carro), repetindo em loop. Toque numa explosão para ver — mesmo as que ainda não comprou.' : 'Toque num item para ver no carro. Os que você ainda não tem ficam só em pré-visualização: compre apenas se gostar.'
     }
     // loja: fundo fixo (Grama de dia) em vez do último mapa jogado, e gol alto (igual aos modos do jogo) na aba de explosões
@@ -7142,7 +7163,7 @@
       for (let i = 0; i < 22; i++) {const T = .97 + i * .07 + Math.random() * .03, p = (Math.random() - .5) * .9; tom('square', 1568, 2093, T, .09, .035, {lp: 5000, pan: p}); tom('triangle', 2093, 3136, T + .05, .12, .05, {pan: p})}
     }
     // ---------- Explosões de gol de outros jogos: INVASORES PIXEL (Space Invaders) e BOLA DE CAPTURA (Pokémon) ----------
-    const f2d = () => mode === '2p' && !shopOpen && st === 'play', ease3 = u => 1 - Math.pow(1 - clamp(u, 0, 1), 3),
+    const f2d = () => false, ease3 = u => 1 - Math.pow(1 - clamp(u, 0, 1), 3),
       pxSpr = rows => {const t = cvs(128, 128, x => {x.fillStyle = '#fff'; const w = rows[0].length, ox = (128 - w * 8) / 2, oy = (128 - rows.length * 8) / 2; rows.forEach((r, j) => {for (let i = 0; i < w; i++)if (r[i] === '#') x.fillRect(ox + i * 8, oy + j * 8, 8, 8)})}); t.magFilter = t.minFilter = THREE.NearestFilter; return t},
       spr = (c, s, o) => {const q = new THREE.Sprite(new THREE.SpriteMaterial({map: glowT, color: c, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false, opacity: o == null ? 1 : o})); q.scale.setScalar(s); return q};
     // ===== SPACE INVADERS: formação de alienígenas pixelados é abatida pelo canhão =====
@@ -8193,14 +8214,14 @@
       }
       else if (type === 'nuke') {FXO.nu = FXO.nu || mkNuke(); FXO.nu.g.position.set(o.x, o.y, o.z + o.dz * 8); FXO.nu.g.visible = true}
       else if (type === 'portal') {
-        FXO.po = FXO.po || mkPortal(); const Q = FXO.po, f2 = mode === '2p' && !shopOpen && st === 'play';
+        FXO.po = FXO.po || mkPortal(); const Q = FXO.po, f2 = false;
         Q.yaw = f2 ? Math.PI / 2 : (o.dz > 0 ? 0 : Math.PI); Q.base = [f2 ? 0 : o.x, 12 + o.y, o.z + o.dz * 7];
         Q.g.position.set(Q.base[0], Q.base[1], Q.base[2]); Q.g.rotation.y = Q.yaw; Q.g.scale.setScalar(.01); Q.g.visible = true
       }
       else if (type === 'swords') {
         FXO.sw = FXO.sw || [0, 1, 2, 3, 4].map(k => mkSword(k === 4)); FXO.swf = FXO.swf || mkSwFire();
         // 5 espadas formando um X no chão: 4 nas pontas (menores) + a maior no centro, inclinadas e cravadas no chão
-        const f2 = mode === '2p' && !shopOpen && st === 'play', pt = [[-1, -1], [1, 1], [1, -1], [-1, 1], [0, 0]], dl = [.05, .3, .18, .42, .8], sz = [.82, .78, .8, .76, 1.3];
+        const f2 = false, pt = [[-1, -1], [1, 1], [1, -1], [-1, 1], [0, 0]], dl = [.05, .3, .18, .42, .8], sz = [.82, .78, .8, .76, 1.3];
         FXO.sw.forEach((s, k) => {
           const lx = pt[k][0] * (9.5 + (Math.random() - .5) * 1.6) + (Math.random() - .5) * 1.2, lz = pt[k][1] * (6 + (Math.random() - .5) * 1.2) + (Math.random() - .5) * 1;
           s.x = f2 ? lz * 1.1 : lx; s.z = f2 ? o.z + o.dz * (15 + lx * .9) : o.z + o.dz * (13 + lz);
@@ -8219,12 +8240,12 @@
         })
       }
       else if (type === 'creeper') {
-        FXO.cr = FXO.cr || mkCreeper(); FXO.crd = FXO.crd || mkDebris(); const C = FXO.cr, f2 = mode === '2p' && !shopOpen && st === 'play';
+        FXO.cr = FXO.cr || mkCreeper(); FXO.crd = FXO.crd || mkDebris(); const C = FXO.cr, f2 = false;
         C.yaw = f2 ? Math.PI / 2 : (o.dz > 0 ? 0 : Math.PI); C.base = [f2 ? 0 : o.x, o.y, o.z + o.dz * (f2 ? 8 : 15)]; C.boom = false; C.mats.forEach(m => m.emissive.setRGB(0, 0, 0));
         C.g.position.set(C.base[0], C.base[1], C.base[2]); C.g.rotation.y = C.yaw; C.g.scale.setScalar(.01); C.g.visible = true; FXO.crd.forEach(d => d.g.visible = false)
       }
       else if (type === 'rings') {
-        FXO.ri = FXO.ri || mkRings(); FXO.rir = FXO.ri.rs; const R = FXO.ri, f2 = mode === '2p' && !shopOpen && st === 'play';
+        FXO.ri = FXO.ri || mkRings(); FXO.rir = FXO.ri.rs; const R = FXO.ri, f2 = false;
         R.base = [f2 ? 0 : o.x, 10 + o.y, o.z + o.dz * (f2 ? 8 : 10)]; R.dz = o.dz; R.done = false; R.rs.forEach(r => r.g.visible = false); R.g.position.set(R.base[0], R.base[1], R.base[2]); R.g.scale.setScalar(.01); R.g.visible = true
       }
       else if (type === 'invaders') {FXO.iv = FXO.iv || mkInvaders(); const V = FXO.iv, f2 = f2d(); V.base = [f2 ? 0 : o.x, 13 + o.y, o.z + o.dz * (f2 ? 8 : 9)]; V.ax = f2 ? 0 : 1; V.az = f2 ? 1 : 0; V.k = 0; V.fin = false; V.lt = 0; V.tl = null; V.cx = 0; V.ord = [...Array(15).keys()].sort(() => Math.random() - .5); V.al.forEach(a => {a.alive = true; a.s.visible = false}); V.cn.visible = false; V.ls.visible = false; V.g.position.set(V.base[0], V.base[1], V.base[2]); V.g.visible = true}
@@ -8459,17 +8480,17 @@
       }
       if (c.fl) {
         c.fl.t += dt;
-        if (on) {c.ftg = c.fa / TAU < .12 ? 0 : Math.ceil(c.fa / TAU - .001) * TAU; c.fl = null} // pousou no meio do flip: termina a volta suavemente
+        if (on) {c.ftg = Math.round(c.fa / TAU) * TAU; c.fl = null} // pousou no meio do flip: termina a volta suavemente
         else if (c.fl.t >= FD) {c.fl = null; c.fa = 0; c.ftg = 0}
         else {const u = c.fl.t / FD, e = 1 - Math.pow(1 - u, 1.7); c.fa = e * TAU}
       }
       if (!c.fl && c.fa) { // anima até o múltiplo de 360° mais próximo (que é igual a não girado)
-        if (!on) {c.fa = 0; c.ftg = 0} else {{const rem = c.ftg - c.fa, ar = Math.abs(rem); c.fa += Math.sign(rem) * Math.min(ar, Math.max(ar * (1 - Math.exp(-9 * dt)), 8 * dt))} if (Math.abs(c.ftg - c.fa) < .03) {c.fa = 0; c.ftg = 0} }
+        if (!on) {c.fa = 0; c.ftg = 0} else {{const rem = c.ftg - c.fa, ar = Math.abs(rem); c.fa += Math.sign(rem) * Math.min(ar, Math.max(ar * (1 - Math.exp(-22 * dt)), 16 * dt))} if (Math.abs(c.ftg - c.fa) < .03) {c.fa = 0; c.ftg = 0} }
       }
       let tp = 0, tr = 0; // alvo do movimento visual (agacha ao acelerar, inclina nas curvas)
       if (on) {
         c.jumps = 0; c.jhd = false;
-        alignU(c, N, 14, dt); // o carro "cola" na superfície (chão, curva ou parede)
+        alignU(c, N, c.gr ? 14 : 1e3, dt); // o carro "cola" na superfície (chão, curva ou parede); ao pousar já fica nivelado na hora
         const gk = G * N[1]; c.vx += gk * N[0] * dt; c.vy += (gk * N[1] - G) * dt; c.vz += gk * N[2] * dt; // gravidade só ao longo da superfície
         const vn = c.vx * N[0] + c.vy * N[1] + c.vz * N[2]; if (vn < 0) {c.vx -= N[0] * vn; c.vy -= N[1] * vn; c.vz -= N[2] * vn}
         let Lf = lfv(U, F), fs = c.vx * F[0] + c.vy * F[1] + c.vz * F[2], ls = c.vx * Lf[0] + c.vy * Lf[1] + c.vz * Lf[2]; const fs0 = fs;
@@ -8491,7 +8512,8 @@
         c.yv += (yt - c.yv) * Math.min(1, dt * 14); // inércia de giro: curvas sem "tranco"
         rotA(F, U, c.yv * dt); orth(c); Lf = lfv(U, F);
         c.vx = F[0] * fs + Lf[0] * ls; c.vy = F[1] * fs + Lf[1] * ls; c.vz = F[2] * fs + Lf[2] * ls;
-        tp = clamp((fs - fs0) / dt / 90, -1, 1) * .05; tr = clamp(fs * c.yv / 70, -1, 1) * .12;
+        tp = 0; tr = 0; // no chão o carro não inclina (nem ao acelerar, nem ao virar): anda sempre reto e nivelado
+        if (sf.d > .01) {const kd = (c.gr ? Math.min(1, dt * 20) : 1) * sf.d; c.x -= N[0] * kd; c.y -= N[1] * kd; c.z -= N[2] * kd} // rodando: o carro fica colado na superfície, sem flutuar
       } else {
         const fln = !!c.fl; // durante o flip o controle de inclinação trava
         c.pv += ((fln ? 0 : (i.pit || 0) * 3.6 * clamp(((c.fk == null ? 1 : c.fk) - .45) / .55, 0, 1)) - c.pv) * Math.min(1, dt * 9);
@@ -8527,6 +8549,22 @@
       if (az > zmax) {c.z = Math.sign(c.z) * zmax; if (Math.abs(c.vz) > 8) {ff = Math.max(ff, .6); if (c.sc <= 0) {c.sc = .18; impactSnd(c, Math.abs(c.vz), 0)} } c.vz *= -.3}
       if (Math.abs(c.x) > HX) {c.x = Math.sign(c.x) * HX; if (Math.abs(c.vx) > 10 && c.sc <= 0) {c.sc = .18; impactSnd(c, Math.abs(c.vx), 0)} c.vx *= -.3}
       if (c.y < 0) {c.y = 0; if (c.vy < 0) c.vy = 0}
+      if (s2.ny > .95 && c.y < 5) { // corpo do carro (pneus, nariz, traseira e teto) contra o chão plano: inclinado no ar ou de ponta-cabeça, o carro nunca entra no chão
+        const lowest = () => {
+          const Lc = lfv(U, F), tl = CS * (.6 * Math.sqrt(Math.max(0, 1 - Lc[1] * Lc[1])) + .26 * Math.abs(Lc[1])); let mn = 1e9;
+          const lw = (lx, ly, lz) => c.y + CS * (Lc[1] * lx + U[1] * ly + F[1] * lz);
+          [[-1.15, 1.3], [1.15, 1.3], [-1.15, -1.3], [1.15, -1.3]].forEach(w => {mn = Math.min(mn, lw(w[0], .6, w[1]) - tl)});
+          [[-1.1, .34, -2.1], [1.1, .34, -2.1], [-1.1, .34, 2.65], [1.1, .34, 2.65], [-.95, 1.9, -1.2], [.95, 1.9, -1.2], [-.95, 1.9, 1], [.95, 1.9, 1]].forEach(w => {mn = Math.min(mn, lw(w[0], w[1], w[2]))});
+          return mn
+        };
+        let mn = lowest();
+        if (mn < -1e-4) {if (U[1] > .15) {alignU(c, [0, 1, 0], 1e3, dt); mn = lowest(); c.y -= mn; mn = 0} // tocou o chão inclinado: o carro já fica nivelado na hora e encostado direto no chão, sem flutuar
+          if (mn < 0) c.y -= mn; if (c.vy < 0) c.vy = 0; if (U[1] > .15) {}
+          else { // de barriga pra cima (ou de lado): forte atrito com o chão, não escorrega; parado, ele se desvira sozinho
+            const fr = Math.exp(-5 * dt); c.vx *= fr; c.vz *= fr; c.yv *= fr; if (Math.hypot(c.vx, c.vz) < 4) alignU(c, [0, 1, 0], 2.5, dt)
+          }
+        }
+      }
       // direção "de câmera/IA" derivada da orientação real do carro
       const fh = Math.hypot(F[0], F[2]); c.h = fh > .4 ? Math.atan2(F[0], F[2]) : Math.atan2(-U[0], -U[2]); c.p = Math.asin(clamp(F[1], -1, 1));
       c.fsv = c.vx * F[0] + c.vy * F[1] + c.vz * F[2]; c.gr = on;
@@ -8778,6 +8816,14 @@
       c.mesh.visible = !s.d && !(s.iv && Math.floor(ctime * 16) % 2);
       c.mesh.quaternion.copy(_q1); _v.set(0, h0, 0).applyQuaternion(_q1);
       c.mesh.position.set(cx - _v.x, cy - _v.y, cz - _v.z);
+      { // o carro nunca atravessa o chão: se alguma roda ou parte da carroceria ficar abaixo da superfície, o carro sobe o suficiente para ficar em cima dela
+        const q = c.mesh.quaternion, p0 = c.mesh.position; let worst = 0, wx = 0, wy = 1, wz = 0;
+        const hit = (px, py, pz) => {const sf = surf(px, py, pz); if (-sf.d > worst) {worst = -sf.d; wx = sf.nx; wy = sf.ny; wz = sf.nz} };
+        const axY = _l.set(1, 0, 0).applyQuaternion(q).y, tr = CS * (.6 * Math.sqrt(Math.max(0, 1 - axY * axY)) + .26 * Math.abs(axY));
+        [[-1.15, 1.3], [1.15, 1.3], [-1.15, -1.3], [1.15, -1.3]].forEach(w => {_u.set(w[0] * CS, .6 * CS, w[1] * CS).applyQuaternion(q); hit(p0.x + _u.x, p0.y + _u.y - tr, p0.z + _u.z)}); // 4 pneus
+        [[-1.1, .34, -2.1], [1.1, .34, -2.1], [-1.1, .34, 2.65], [1.1, .34, 2.65], [-.95, 1.9, -1.2], [.95, 1.9, -1.2], [-.95, 1.9, 1], [.95, 1.9, 1]].forEach(w => {_u.set(w[0] * CS, w[1] * CS, w[2] * CS).applyQuaternion(q); hit(p0.x + _u.x, p0.y + _u.y, p0.z + _u.z)}); // cantos da carroceria e do teto
+        if (worst > 1e-4) p0.set(p0.x + wx * worst, p0.y + wy * worst, p0.z + wz * worst)
+      }
       if (c === P) playerFx(); else if (c === B && LOOKB) playerFxB(); c.mesh.fl.visible = !!s.b; wheelUpd(c.mesh, s); flameShape(c);
     }
     function flameShape(c) { // formato da chama do boost de cada tema
@@ -9048,7 +9094,7 @@
     $('go').onclick = () => {if (st === 'menu' || $('go').textContent === 'JOGAR') openSel('play'); else goMode(mode, mode === '2p' && tr1, bot1)}; $('j1v1b').onclick = () => goMode('2p', true, true); $('goT').onclick = () => openSel('train'); $('tr1v1').onclick = () => goMode('2p', true); $('go2').onclick = () => openSel('2p');
     /* ---------- tela de seleção de mapas (abre ao clicar em JOGAR, TREINO ou 2 PLAYERS) ---------- */
     const msel = document.createElement('div'); msel.id = 'msel'; msel.className = 'hide';
-    {const cs = document.createElement('style'); cs.textContent = '#msel{position:fixed;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:safe center;gap:14px;padding:20px;overflow:auto;text-align:center;color:#fff;background:radial-gradient(ellipse at 50% 40%,#0d2a5aee,#030a1af2 80%);touch-action:pan-y}#msel.hide{display:none}#mst{margin:0;font-size:34px;letter-spacing:2px}#msd{margin:0;opacity:.85;font-size:15px}#msb{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:6px}#msGo{background:linear-gradient(#3f8bff,#1c4fc0);color:#fff;border:2px solid #9fd0ff88;box-shadow:0 6px 22px -6px #2f7bff}#msBack{position:fixed;top:12px;right:calc(env(safe-area-inset-right,0px) + 12px);z-index:2;font-size:16px;padding:8px 18px;background:#1c2b4d;color:#fff}#msel #tod{margin-top:2px}@media(max-width:800px),(max-height:520px){#mst{font-size:24px}#msd{font-size:12px}#msb button{font-size:18px;padding:10px 26px}}'; document.head.appendChild(cs)}
+    {const cs = document.createElement('style'); cs.textContent = '#msel{position:fixed;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:safe center;gap:14px;padding:20px;overflow:auto;text-align:center;color:#fff;background:radial-gradient(ellipse at 50% 40%,#0d2a5aee,#030a1af2 80%);touch-action:pan-y}#msel.hide{display:none}#mst{margin:0;font-size:34px;letter-spacing:2px}#msd{margin:0;opacity:.85;font-size:15px}#msb{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:6px}#msGo{background:linear-gradient(#3f8bff,#1c4fc0);color:#fff;border:2px solid #9fd0ff88;box-shadow:0 6px 22px -6px #2f7bff}#msBack{position:fixed;top:12px;right:calc(env(safe-area-inset-right,0px) + 12px);z-index:2;font-size:26px;padding:16px 34px;background:#1c2b4d;color:#fff}#msel #tod{margin-top:2px}@media(max-width:800px),(max-height:520px){#mst{font-size:24px}#msd{font-size:12px}#msb button{font-size:18px;padding:10px 26px}}'; document.head.appendChild(cs)}
     msel.innerHTML = '<h2 id="mst"></h2><p id="msd">Escolha a arena e se a partida vai ser de DIA ou de NOITE</p>';
     msel.append($('arn'), $('tod'));
     {const b = document.createElement('div'); b.id = 'msb'; b.innerHTML = '<button id="msGo"></button>'; msel.append(b); const bk = document.createElement('button'); bk.id = 'msBack'; bk.textContent = '⬅ VOLTAR'; msel.append(bk)}
